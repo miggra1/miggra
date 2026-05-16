@@ -161,19 +161,24 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
 
         <div className="grid gap-4">
           {filteredNotes.map((note) => (
-            <article
-              key={note.id}
-              className={`rounded-[1.5rem] border bg-white/5 p-6 ${note.pinned ? "border-amber-300/30" : "border-white/10"}`}
-            >
+            <article key={note.id} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-medium">{note.title}</h3>
                   <p className="mt-1 text-xs text-white/45">{new Date(note.createdAt).toLocaleString("zh-CN")}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {note.pinned ? <span className="rounded-full border border-amber-300/30 px-3 py-1 text-xs text-amber-100">置顶</span> : null}
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60">{note.tag}</span>
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60">{note.status}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60">
+                    {note.tag}
+                  </span>
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60">
+                    {note.status}
+                  </span>
+                  {note.pinned ? (
+                    <span className="rounded-full border border-amber-300/30 px-3 py-1 text-xs text-amber-100">
+                      置顶
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <p className="mt-4 whitespace-pre-wrap text-white/65">{note.text}</p>
@@ -221,13 +226,13 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
               <option value="PUBLISHED">已发布</option>
               <option value="DRAFT">草稿</option>
             </select>
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/75">
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/75">
               <input
                 type="checkbox"
                 checked={editing?.pinned ?? false}
                 onChange={(e) => setEditing((prev) => ({ ...(prev ?? emptyForm()), pinned: e.target.checked }))}
               />
-              置顶这条碎碎念
+              置顶
             </label>
             <textarea
               value={editing?.text ?? ""}
