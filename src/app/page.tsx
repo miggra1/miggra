@@ -2,6 +2,9 @@ import { listNotes } from "@/lib/notes";
 import { getStats } from "@/lib/stats";
 import { StatsPanel } from "./components/stats-panel";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export default async function Home() {
   const notes = await listNotes();
   const stats = await getStats();
