@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { listNotes } from "@/lib/notes";
+import type { Note } from "@/lib/notes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  let notes = [];
+  let notes: Note[] = [];
 
   try {
     notes = await listNotes();
