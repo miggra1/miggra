@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum NoteStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Note {
+  id        String     @id @default(cuid())
+  title     String
+  text      String     @db.Text
+  tag       String     @default("随想")
+  status    NoteStatus @default(PUBLISHED)
+  pinned    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status, pinned, createdAt])
+}
