@@ -2,17 +2,26 @@ import { NextResponse } from "next/server";
 import { listNotes } from "@/lib/notes";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const notes = await listNotes();
+  let notes = [];
+
+  try {
+    notes = await listNotes();
+  } catch {
+    notes = [];
+  }
+
   const published = notes.filter((note) => note.status === "PUBLISHED").slice(0, 20);
+  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
   const items = published
     .map(
       (note) => `
         <item>
           <title><![CDATA[${note.title}]]></title>
-          <link>${process.env.SITE_URL ?? "http://localhost:3000"}/notes/${note.id}</link>
+          <link>${baseUrl}/notes/${note.id}</link>
           <guid>${note.id}</guid>
           <pubDate>${new Date(note.createdAt).toUTCString()}</pubDate>
           <description><![CDATA[${note.text}]]></description>
@@ -24,7 +33,7 @@ export async function GET() {
     <rss version="2.0">
       <channel>
         <title>Miggra Journal</title>
-        <link>${process.env.SITE_URL ?? "http://localhost:3000"}</link>
+        <link>${baseUrl}</link>
         <description>个人碎碎念订阅源</description>
         ${items}
       </channel>

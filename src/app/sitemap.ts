@@ -1,8 +1,18 @@
 import { listNotes } from "@/lib/notes";
 
+export const runtime = "nodejs";
+export const revalidate = 0;
+
 export default async function sitemap() {
   const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
-  const notes = await listNotes();
+  let notes = [];
+
+  try {
+    notes = await listNotes();
+  } catch {
+    notes = [];
+  }
+
   const published = notes.filter((note) => note.status === "PUBLISHED");
 
   return [
