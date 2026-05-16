@@ -1,5 +1,8 @@
 import { listNotes } from "@/lib/notes";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export default async function NotesPage() {
   const notes = await listNotes();
   const published = notes.filter((note) => note.status === "PUBLISHED");

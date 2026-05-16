@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 import { listNotes } from "@/lib/notes";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export default async function NotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const notes = await listNotes();
   const note = notes.find((item) => item.id === id && item.status === "PUBLISHED");
 
   if (!note) notFound();
-
-  const shareText = encodeURIComponent(`${note.title}｜${note.text}`);
 
   return (
     <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
@@ -21,17 +22,9 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
         </div>
         <h1 className="mt-6 text-4xl font-semibold">{note.title}</h1>
         <p className="mt-6 whitespace-pre-wrap leading-8 text-white/75">{note.text}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8">
           <a href="/" className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm transition hover:bg-white/10">
             返回首页
-          </a>
-          <a
-            href={`https://www.google.com/search?q=${shareText}`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm transition hover:bg-white/10"
-          >
-            搜索分享
           </a>
         </div>
       </article>
