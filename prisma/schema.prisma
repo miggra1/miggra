@@ -22,5 +22,6 @@ model Note {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  @@index([status, pinned, createdAt])
+  @@map("notes")
+  @@index([status, createdAt])
 }

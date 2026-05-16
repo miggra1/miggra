@@ -18,11 +18,13 @@ export async function POST(request: Request) {
   const title = body.title.trim();
   const text = body.text.trim();
   const tag = typeof body.tag === "string" ? body.tag : undefined;
+  const pinned = Boolean(body.pinned);
+  const status = body.status === "DRAFT" ? "DRAFT" : "PUBLISHED";
 
   if (!title || !text) {
     return NextResponse.json({ error: "标题和内容不能为空。" }, { status: 400 });
   }
 
-  const note = await createNote({ title, text, tag });
+  const note = await createNote({ title, text, tag, pinned, status });
   return NextResponse.json({ note }, { status: 201 });
 }

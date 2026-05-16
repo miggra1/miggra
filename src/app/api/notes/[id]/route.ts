@@ -15,7 +15,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     title: body.title,
     text: body.text,
     tag: typeof body.tag === "string" ? body.tag : undefined,
-    status: typeof body.status === "string" ? body.status : undefined,
+    status: body.status === "DRAFT" ? "DRAFT" : "PUBLISHED",
+    pinned: Boolean(body.pinned),
   });
 
   if (!note) {
