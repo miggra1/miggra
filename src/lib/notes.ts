@@ -1,3 +1,4 @@
+import { withDbTimeout } from "@/lib/db-timeout";
 import { prisma } from "@/lib/prisma";
 import { computeStatsFromNotes, emptyStats } from "@/lib/stats";
 import type { Note as PrismaNote, NoteStatus } from "@prisma/client";
@@ -13,9 +14,11 @@ export type NoteInput = {
 };
 
 export async function listNotes() {
-  return prisma.note.findMany({
-    orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
-  });
+  return withDbTimeout(
+    prisma.note.findMany({
+      orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
+    }),
+  );
 }
 
 export async function listNotesSafe() {
@@ -37,9 +40,11 @@ export async function getHomePageData() {
 }
 
 export async function getPublishedNote(id: string) {
-  return prisma.note.findFirst({
-    where: { id, status: "PUBLISHED" },
-  });
+  return withDbTimeout(
+    prisma.note.findFirst({
+      where: { id, status: "PUBLISHED" },
+    }),
+  );
 }
 
 export async function getPublishedNoteSafe(id: string) {

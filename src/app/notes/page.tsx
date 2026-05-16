@@ -1,7 +1,7 @@
 import { listNotesSafe } from "@/lib/notes";
 import { DbErrorBanner } from "../components/db-error-banner";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 export const runtime = "nodejs";
 
 export default async function NotesPage() {

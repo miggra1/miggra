@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "./theme-provider";
 import { TopBar } from "./components/top-bar";
-import { PublicNav } from "./components/public-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,7 +30,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <ThemeProvider>
           <TopBar />
-          <PublicNav />
           {children}
         </ThemeProvider>
       </body>
