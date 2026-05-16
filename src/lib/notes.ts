@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { computeStatsFromNotes, emptyStats } from "@/lib/stats";
 import type { Note as PrismaNote, NoteStatus } from "@prisma/client";
 
 export type Note = PrismaNote;
@@ -15,6 +16,39 @@ export async function listNotes() {
   return prisma.note.findMany({
     orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
   });
+}
+
+export async function listNotesSafe() {
+  try {
+    const notes = await listNotes();
+    return { notes, dbError: false as const };
+  } catch {
+    return { notes: [] as Note[], dbError: true as const };
+  }
+}
+
+export async function getHomePageData() {
+  try {
+    const notes = await listNotes();
+    return { notes, stats: computeStatsFromNotes(notes), dbError: false as const };
+  } catch {
+    return { notes: [] as Note[], stats: emptyStats, dbError: true as const };
+  }
+}
+
+export async function getPublishedNote(id: string) {
+  return prisma.note.findFirst({
+    where: { id, status: "PUBLISHED" },
+  });
+}
+
+export async function getPublishedNoteSafe(id: string) {
+  try {
+    const note = await getPublishedNote(id);
+    return { note, dbError: false as const };
+  } catch {
+    return { note: null, dbError: true as const };
+  }
 }
 
 export async function createNote(input: NoteInput) {

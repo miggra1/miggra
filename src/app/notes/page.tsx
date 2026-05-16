@@ -1,16 +1,19 @@
-import { listNotes } from "@/lib/notes";
+import { listNotesSafe } from "@/lib/notes";
+import { DbErrorBanner } from "../components/db-error-banner";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function NotesPage() {
-  const notes = await listNotes();
+  const { notes, dbError } = await listNotesSafe();
   const published = notes.filter((note) => note.status === "PUBLISHED");
   const pinned = published.filter((note) => note.pinned);
   const timeline = published;
 
   return (
-    <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
+    <>
+      {dbError ? <DbErrorBanner /> : null}
+      <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
           <p className="text-sm uppercase tracking-[0.3em] text-white/35">Archive</p>
@@ -57,5 +60,6 @@ export default async function NotesPage() {
         </section>
       </div>
     </main>
+    </>
   );
 }

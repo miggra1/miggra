@@ -1,20 +1,24 @@
 import { isAdminAuthenticated } from "@/lib/auth";
-import { getStats } from "@/lib/stats";
-import { listNotes } from "@/lib/notes";
+import { listNotesSafe } from "@/lib/notes";
+import { computeStatsFromNotes } from "@/lib/stats";
 import { AdminClient } from "./admin-client";
 import { AdminLogin } from "./login";
+import { DbErrorBanner } from "../components/db-error-banner";
 
 export default async function AdminPage() {
   const authed = await isAdminAuthenticated();
-  const notes = await listNotes();
-  const stats = await getStats();
 
   if (!authed) {
     return <AdminLogin />;
   }
 
+  const { notes, dbError } = await listNotesSafe();
+  const stats = computeStatsFromNotes(notes);
+
   return (
-    <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
+    <>
+      {dbError ? <DbErrorBanner /> : null}
+      <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
           <p className="text-sm uppercase tracking-[0.3em] text-white/35">Admin</p>
@@ -44,5 +48,6 @@ export default async function AdminPage() {
         <AdminClient initialNotes={notes} />
       </div>
     </main>
+    </>
   );
 }

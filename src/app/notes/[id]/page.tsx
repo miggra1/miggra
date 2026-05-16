@@ -1,13 +1,26 @@
 import { notFound } from "next/navigation";
-import { listNotes } from "@/lib/notes";
+import { getPublishedNoteSafe } from "@/lib/notes";
+import { DbErrorBanner } from "../../components/db-error-banner";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function NotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const notes = await listNotes();
-  const note = notes.find((item) => item.id === id && item.status === "PUBLISHED");
+  const { note, dbError } = await getPublishedNoteSafe(id);
+
+  if (dbError) {
+    return (
+      <>
+        <DbErrorBanner />
+        <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
+          <p className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-white/5 p-8 text-center text-white/70">
+            无法加载该碎碎念，请稍后重试。
+          </p>
+        </main>
+      </>
+    );
+  }
 
   if (!note) notFound();
 

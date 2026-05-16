@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
-import { createNote, listNotes } from "@/lib/notes";
+import { createNote, listNotesSafe } from "@/lib/notes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  let notes = [];
-
-  try {
-    notes = await listNotes();
-  } catch {
-    notes = [];
-  }
-
+  const { notes } = await listNotesSafe();
   return NextResponse.json({ notes });
 }
 
