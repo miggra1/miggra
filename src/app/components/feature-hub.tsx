@@ -14,7 +14,7 @@ type FeatureHubProps = {
 
 export function FeatureHub({ items }: FeatureHubProps) {
   return (
-    <section className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-xl">
+    <section className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_20px_80px_var(--shadow)] backdrop-blur-xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Life modules</p>
@@ -27,7 +27,7 @@ export function FeatureHub({ items }: FeatureHubProps) {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:-translate-y-1 hover:bg-[var(--card-strong)]"
+            className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:-translate-y-1 hover:bg-[var(--card-strong)]"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -37,6 +37,7 @@ export function FeatureHub({ items }: FeatureHubProps) {
               {item.count ? <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--subtle)]">{item.count}</span> : null}
             </div>
             <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.description}</p>
+            <div className="mt-5 text-sm text-[var(--subtle)] transition group-hover:text-[var(--fg)]">查看页面 →</div>
           </Link>
         ))}
       </div>

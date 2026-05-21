@@ -6,6 +6,9 @@ import { AdminLogin } from "./login";
 import { DbErrorBanner } from "../components/db-error-banner";
 import { prisma } from "@/lib/prisma";
 import { ContentAdminClient } from "./content-admin-client";
+import { HomepageModulesClient } from "./homepage-modules-client";
+import { GuestbookAdminClient } from "./guestbook-client";
+import { TimelineMilestonesClient } from "./timeline-milestones-client";
 
 export default async function AdminPage() {
   const authed = await isAdminAuthenticated();
@@ -27,22 +30,24 @@ export default async function AdminPage() {
     active: item.active,
     createdAt: item.createdAt.toISOString(),
   }));
+  const homepageModules = await prisma.homepageModule.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] });
+  const timelineItems = await prisma.timelineMilestone.findMany({ orderBy: [{ kind: "asc" }, { order: "asc" }, { createdAt: "desc" }] });
 
   return (
     <>
       {dbError ? <DbErrorBanner /> : null}
-      <main className="min-h-screen bg-[#07070a] px-6 py-12 text-white">
+      <main className="min-h-screen bg-[var(--bg)] px-6 py-12 text-[var(--fg)]">
       <div className="mx-auto max-w-6xl space-y-8">
-        <header className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/35">Admin</p>
+        <header className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-8 backdrop-blur-xl">
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Admin</p>
           <h1 className="mt-3 text-3xl font-semibold">站点后台</h1>
-          <p className="mt-3 max-w-2xl text-white/65">
+          <p className="mt-3 max-w-2xl text-[var(--muted)]">
             这里可以同时管理碎碎念和生活模块内容。搜索、筛选、新建、编辑、删除都在这里完成。
           </p>
         </header>
 
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/35">Admin Stats</p>
+        <section className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-xl">
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Admin Stats</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[
               { label: "总碎念数", value: stats.totalNotes },
@@ -50,8 +55,8 @@ export default async function AdminPage() {
               { label: "草稿", value: stats.draftNotes },
               { label: "标签数", value: stats.tagCount },
             ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="text-xs uppercase tracking-[0.2em] text-white/35">{item.label}</div>
+              <div key={item.label} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.label}</div>
                 <div className="mt-3 text-3xl font-semibold">{item.value}</div>
               </div>
             ))}
@@ -60,6 +65,17 @@ export default async function AdminPage() {
 
         <AdminClient initialNotes={notes} />
         <ContentAdminClient initialItems={contentItems} />
+        <TimelineMilestonesClient initialItems={timelineItems.map((item) => ({
+          id: item.id,
+          year: item.year,
+          kind: item.kind,
+          title: item.title,
+          detail: item.detail,
+          order: item.order,
+          active: item.active,
+        }))} />
+        <HomepageModulesClient initialModules={homepageModules} />
+        <GuestbookAdminClient />
       </div>
     </main>
     </>

@@ -5,29 +5,30 @@ const prisma = new PrismaClient();
 async function main() {
   await prisma.contentItem.deleteMany();
   await prisma.note.deleteMany();
+  await prisma.guestbookEntry.deleteMany();
+  await prisma.homepageModule.deleteMany();
+  await prisma.timelineMilestone.deleteMany();
 
   await prisma.note.createMany({
     data: [
       {
-        title: "凌晨一点的脑海回声",
-        text: "有些想法像雾一样，抓不住，但很适合被写下来。",
-        tag: "随想",
+        title: "把网站变成一个会慢慢生长的地方",
+        text: "今天把首页和后台又往前推进了一点，希望它以后不只是一个静态展示页，而是一个真的能持续记录、持续回看的空间。",
+        tag: "站点",
         status: "PUBLISHED",
         pinned: true,
       },
       {
-        title: "今天的天空很像电影分镜",
-        text: "云层、光线和风都在慢慢移动，像一场不会结束的长镜头。",
-        tag: "观察",
+        title: "晚上整理了一下灵感墙",
+        text: "灵感不一定要很完整才配被保存，碎片、便签、半成品也可以先放进去。",
+        tag: "灵感",
         status: "PUBLISHED",
-        pinned: false,
       },
       {
-        title: "把日常当作素材",
-        text: "记录不是为了完整，而是为了在未来某天重新看见自己。",
-        tag: "记录",
+        title: "给留言板留一个位置",
+        text: "如果有人路过，能留下点什么会很温柔。",
+        tag: "网站",
         status: "PUBLISHED",
-        pinned: false,
       },
     ],
   });
@@ -113,14 +114,71 @@ async function main() {
       },
     ],
   });
+
+  await prisma.timelineMilestone.createMany({
+    data: [
+      {
+        year: "2021",
+        kind: "PERSONAL",
+        title: "开始独立整理自己的表达",
+        detail: "那时候只是想把零散的想法写下来，慢慢发现记录本身也在塑造自己。",
+        order: 1,
+      },
+      {
+        year: "2023",
+        kind: "PERSONAL",
+        title: "开始更认真看待个人作品",
+        detail: "不再把网站当作临时项目，而是一个真正可以长期维护的空间。",
+        order: 2,
+      },
+      {
+        year: "2024",
+        kind: "SITE",
+        title: "第一次认真做个人站改版",
+        detail: "开始把碎碎念、项目和生活拆开整理。",
+        order: 1,
+      },
+      {
+        year: "2025",
+        kind: "SITE",
+        title: "把内容更新变成一个习惯",
+        detail: "逐步加入归档、标签和可维护的写作结构。",
+        order: 2,
+      },
+      {
+        year: "2026",
+        kind: "SITE",
+        title: "让网站更像自己",
+        detail: "加入 Now、愿望清单、书单、灵感墙、留言板和人生节点。",
+        order: 3,
+      },
+    ],
+  });
+
+  await prisma.homepageModule.createMany({
+    data: [
+      { key: "now", title: "Now", enabled: true, order: 1 },
+      { key: "wish", title: "愿望清单", enabled: true, order: 2 },
+      { key: "reading", title: "书单", enabled: true, order: 3 },
+      { key: "inspirations", title: "灵感墙", enabled: true, order: 4 },
+      { key: "timeline", title: "人生节点", enabled: true, order: 5 },
+      { key: "guestbook", title: "公开留言板", enabled: true, order: 6 },
+    ],
+  });
+
+  await prisma.guestbookEntry.createMany({
+    data: [
+      { name: "路过的人", message: "这里很安静，也很舒服。", status: "PUBLISHED" },
+      { name: "匿名", message: "喜欢这种慢慢长出来的网站。", status: "PUBLISHED" },
+    ],
+  });
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (error) => {
-    console.error(error);
-    await prisma.$disconnect();
+  .catch((e) => {
+    console.error(e);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });

@@ -11,7 +11,7 @@ type StatsPanelProps = {
 
 function StatCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[0_12px_40px_var(--shadow)]">
       <div className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{label}</div>
       <div className="mt-3 text-3xl font-semibold">{value}</div>
       {hint ? <div className="mt-2 text-xs text-[var(--subtle)]">{hint}</div> : null}

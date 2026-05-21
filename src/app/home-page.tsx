@@ -3,29 +3,39 @@ import { getHomePageData } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { StatsPanel } from "./components/stats-panel";
 import { FeatureHub } from "./components/feature-hub";
+import { getHomepageModules } from "@/lib/homepage";
 
-const featureCards = [
+const fallbackFeatureCards = [
   { href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。", count: "3" },
   { href: "/wish", label: "Wish", title: "愿望清单", description: "把想做的事先放在这里。", count: "4" },
   { href: "/reading", label: "Reading", title: "书单", description: "整理正在读和想读的书。", count: "3" },
   { href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。", count: "3" },
-  { href: "/timeline", label: "Timeline", title: "时间线", description: "看见这个站是怎么长出来的。", count: "3" },
+  { href: "/timeline", label: "Timeline", title: "人生节点", description: "看见这个站是怎么长出来的。", count: "3" },
+  { href: "/guestbook", label: "Guestbook", title: "公开留言板", description: "留下一个简短的脚印。", count: "1" },
 ];
 
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
+  const modules = await getHomepageModules();
   const published = notes.filter((note) => note.status === "PUBLISHED");
   const latest = published.slice(0, 6);
   const pinned = published.find((note) => note.pinned);
   const random = published[Math.floor(Math.random() * Math.max(published.length, 1))] ?? null;
 
   const tags = Array.from(new Set(published.map((note) => note.tag))).slice(0, 6);
+  const featureCards = (modules.length ? modules : fallbackFeatureCards)
+    .map((item) =>
+      "key" in item
+        ? { href: `/${item.key}`, label: item.title, title: item.title, description: item.title, count: "1" }
+        : item,
+    )
+    .filter((item) => !("enabled" in item) || item.enabled !== false);
 
   return (
     <>
       {dbError ? <DbErrorBanner /> : null}
       <main className="relative min-h-screen overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.28),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.18),transparent_28%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.14),transparent_30%)] dark:opacity-100 opacity-80" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.28),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.18),transparent_28%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.14),transparent_30%)] opacity-80" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] opacity-20" />
 
       <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 lg:px-10">
@@ -47,45 +57,35 @@ export async function HomePage() {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <a
-                href="#notes"
-                className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90"
-              >
+              <a href="#notes" className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90">
                 查看碎碎念
               </a>
               <Link href="/now" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
                 看看 Now
               </Link>
-              <a
-                href="/admin"
-                className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]"
-              >
+              <a href="/admin" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
                 进入后台
               </a>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-white/6 p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl">
+          <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl">
             <div className="space-y-6">
               <div>
-                <p className="text-sm text-white/45">当前状态</p>
+                <p className="text-sm text-[var(--subtle)]">当前状态</p>
                 <p className="mt-2 text-2xl font-semibold">在线记录中</p>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "碎念总数", value: `${notes.length}` },
-                  { label: "已发布", value: `${published.length}` },
-                  { label: "标签数", value: `${tags.length}` },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                {[{ label: "碎念总数", value: `${notes.length}` }, { label: "已发布", value: `${published.length}` }, { label: "标签数", value: `${tags.length}` }].map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
                     <div className="text-2xl font-semibold">{item.value}</div>
-                    <div className="mt-1 text-xs text-white/50">{item.label}</div>
+                    <div className="mt-1 text-xs text-[var(--subtle)]">{item.label}</div>
                   </div>
                 ))}
               </div>
               <div className="rounded-3xl bg-[linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-5">
-                <p className="text-sm text-white/55">随机一句</p>
-                <p className="mt-3 text-lg leading-8 text-white/85">
+                <p className="text-sm text-[var(--subtle)]">随机一句</p>
+                <p className="mt-3 text-lg leading-8 text-[var(--fg)]">
                   {random ? random.text : "还没有内容，先去后台写一条吧。"}
                 </p>
               </div>
@@ -126,48 +126,44 @@ export async function HomePage() {
         <section id="notes" className="mt-16 grid gap-4">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-white/35">Latest notes</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Latest notes</p>
               <h2 className="mt-2 text-2xl font-semibold">最新碎碎念</h2>
             </div>
-            <p className="hidden text-sm text-white/45 md:block">这些内容现在来自 MySQL</p>
+            <p className="hidden text-sm text-[var(--subtle)] md:block">这些内容现在来自 MySQL</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
             {latest.map((note) => (
-              <a
-                key={note.id}
-                href={`/notes/${note.id}`}
-                className="group rounded-[1.75rem] border border-white/10 bg-white/5 p-6 transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08]"
-              >
-                <div className="flex items-center justify-between gap-3 text-xs text-white/45">
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-white/70">{note.tag}</span>
+              <a key={note.id} href={`/notes/${note.id}`} className="group rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-1 hover:bg-[var(--card-strong)]">
+                <div className="flex items-center justify-between gap-3 text-xs text-[var(--subtle)]">
+                  <span className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)]">{note.tag}</span>
                   <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
                 </div>
                 <h3 className="mt-5 text-xl font-medium">{note.title}</h3>
-                <p className="mt-4 line-clamp-4 leading-7 text-white/65">{note.text}</p>
+                <p className="mt-4 line-clamp-4 leading-7 text-[var(--muted)]">{note.text}</p>
               </a>
             ))}
           </div>
         </section>
 
         <section className="mt-16 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-white/35">About</p>
+          <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
+            <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">About</p>
             <h2 className="mt-3 text-2xl font-semibold">这个站要做什么</h2>
-            <p className="mt-4 leading-8 text-white/65">
+            <p className="mt-4 leading-8 text-[var(--muted)]">
               用来记录碎碎念、灵感、观察和情绪。后端已经接到 MySQL，可以继续加登录、管理后台、标签和搜索。
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/reading" className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:bg-black/30">书单</Link>
-              <Link href="/wish" className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:bg-black/30">愿望清单</Link>
-              <Link href="/timeline" className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:bg-black/30">时间线</Link>
+              <Link href="/reading" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">书单</Link>
+              <Link href="/wish" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">愿望清单</Link>
+              <Link href="/timeline" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">时间线</Link>
             </div>
           </div>
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-white/35">Tags</p>
+          <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
+            <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Tags</p>
             <div className="mt-4 flex flex-wrap gap-3">
               {tags.map((tag) => (
-                <span key={tag} className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75">
+                <span key={tag} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)]">
                   {tag}
                 </span>
               ))}

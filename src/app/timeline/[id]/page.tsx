@@ -4,38 +4,47 @@ import { ContentDetailShell } from "../../components/content-detail-shell";
 import { DetailNav } from "../../components/detail-nav";
 import { RelatedItems } from "../../components/related-items";
 import { prisma } from "@/lib/prisma";
+import { TimelineKind } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const item = await prisma.contentItem.findFirst({ where: { id, section: "TIMELINE" } });
-  if (!item) return { title: "未找到内容" };
+  const item = await prisma.timelineMilestone.findFirst({ where: { id } });
+  if (!item) return { title: "未找到节点" };
   return { title: item.title, description: item.detail };
 }
 
 export default async function TimelineDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const item = await prisma.contentItem.findFirst({ where: { id, section: "TIMELINE" } });
+  const item = await prisma.timelineMilestone.findFirst({ where: { id } });
   if (!item) notFound();
 
-  const items = await prisma.contentItem.findMany({ where: { section: "TIMELINE", active: true }, orderBy: [{ order: "asc" }, { createdAt: "desc" }] });
+  const items = await prisma.timelineMilestone.findMany({ where: { active: true, kind: item.kind }, orderBy: [{ order: "asc" }, { createdAt: "desc" }] });
   const index = items.findIndex((entry) => entry.id === item.id);
   const prevHref = index > 0 ? `/timeline/${items[index - 1]?.id}` : undefined;
   const nextHref = index >= 0 && index < items.length - 1 ? `/timeline/${items[index + 1]?.id}` : undefined;
   const related = items
     .filter((entry) => entry.id !== item.id)
     .slice(0, 3)
-    .map((entry) => ({ href: `/timeline/${entry.id}`, title: entry.title, note: entry.meta ?? entry.status ?? "Moment" }));
+    .map((entry) => ({ href: `/timeline/${entry.id}`, title: entry.title, note: entry.year }));
 
   return (
-    <ContentDetailShell eyebrow="Timeline" title={item.title} meta={item.meta ?? item.status ?? "Moment"} backHref="/timeline" backLabel="返回时间线" listHref="/notes" listLabel="碎碎念">
+    <ContentDetailShell
+      eyebrow={item.kind === TimelineKind.PERSONAL ? "人生节点" : "站点节点"}
+      title={item.title}
+      meta={`${item.year} · ${item.kind === TimelineKind.PERSONAL ? "个人经历" : "站点变化"}`}
+      backHref="/timeline"
+      backLabel="返回时间线"
+      listHref="/notes"
+      listLabel="碎碎念"
+    >
       <DetailNav prevHref={prevHref} nextHref={nextHref} />
       <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 leading-8 text-white/75">
         {item.detail}
       </section>
-      <RelatedItems title="同阶段节点" items={related} />
+      <RelatedItems title="同类节点" items={related} />
     </ContentDetailShell>
   );
 }

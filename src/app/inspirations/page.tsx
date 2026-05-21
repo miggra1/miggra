@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { FeaturePageShell } from "../components/feature-page-shell";
-import { FeatureCardGrid } from "../components/feature-card-grid";
 import { fallbackInspirations } from "@/lib/site-data";
 import { listContentItems } from "@/lib/content";
+import { InspirationsClient } from "./inspirations-client";
 
 export const revalidate = 60;
 export const runtime = "nodejs";
@@ -15,16 +15,23 @@ export const metadata: Metadata = {
 export default async function InspirationsPage() {
   const items = await listContentItems("INSPIRATION");
   const source = items.length
-    ? items.map((item) => ({ title: item.title, detail: item.detail, meta: item.meta ?? "Idea", href: `/inspirations/${item.id}` }))
-    : fallbackInspirations.map((item) => ({ title: item.title, detail: item.detail, meta: item.meta }));
+    ? items.map((item, index) => ({
+        title: item.title,
+        detail: item.detail,
+        meta: item.meta ?? (index % 2 === 0 ? "灵感" : "便签"),
+        status: item.status ?? undefined,
+        href: `/inspirations/${item.id}`,
+      }))
+    : fallbackInspirations.map((item, index) => ({
+        title: item.title,
+        detail: item.detail,
+        meta: index % 2 === 0 ? item.meta : "便签",
+        pinned: index === 0,
+      }));
 
   return (
-    <FeaturePageShell
-      eyebrow="Inspiration"
-      title="灵感收集页"
-      description="把脑子里突然冒出来的想法先放进来，之后再慢慢整理。"
-    >
-      <FeatureCardGrid items={source} />
+    <FeaturePageShell eyebrow="Inspiration" title="灵感墙" description="把脑子里突然冒出来的想法先放进来，之后再慢慢整理。">
+      <InspirationsClient items={source} />
     </FeaturePageShell>
   );
 }

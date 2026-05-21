@@ -20,6 +20,17 @@ enum ContentSection {
   TIMELINE
 }
 
+enum GuestbookStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+enum TimelineKind {
+  PERSONAL
+  SITE
+}
+
 model Note {
   id        String     @id @default(cuid())
   title     String
@@ -48,4 +59,44 @@ model ContentItem {
 
   @@map("content_items")
   @@index([section, active, order])
+}
+
+model GuestbookEntry {
+  id        String           @id @default(cuid())
+  name      String           @default("匿名")
+  message   String           @db.Text
+  status    GuestbookStatus   @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("guestbook_entries")
+  @@index([status, createdAt])
+}
+
+model HomepageModule {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String
+  enabled   Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("homepage_modules")
+  @@index([enabled, order])
+}
+
+model TimelineMilestone {
+  id        String       @id @default(cuid())
+  year      String
+  kind      TimelineKind @default(PERSONAL)
+  title     String
+  detail    String       @db.Text
+  order     Int          @default(0)
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("timeline_milestones")
+  @@index([kind, active, order])
 }

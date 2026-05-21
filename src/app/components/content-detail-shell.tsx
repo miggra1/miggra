@@ -27,7 +27,7 @@ export function ContentDetailShell({
           <Link href={backHref} className="transition hover:text-[var(--fg)]">{backLabel}</Link>
           <Link href={listHref} className="transition hover:text-[var(--fg)]">{listLabel}</Link>
         </div>
-        <header className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-8 backdrop-blur-xl">
+        <header className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-8 shadow-[0_20px_80px_var(--shadow)] backdrop-blur-xl">
           <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">{eyebrow}</p>
           <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{title}</h1>
           {meta ? <div className="mt-4 text-sm text-[var(--subtle)]">{meta}</div> : null}
