@@ -4,8 +4,8 @@ import { FeatureCardGrid } from "../components/feature-card-grid";
 import { fallbackReadingList } from "@/lib/site-data";
 import { listContentItems } from "@/lib/content";
 
-export const revalidate = 60;
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "书单",
