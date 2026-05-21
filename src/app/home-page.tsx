@@ -2,6 +2,14 @@ import { getHomePageData } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { StatsPanel } from "./components/stats-panel";
 
+const featureCards = [
+  { href: "/now", label: "Now", title: "当前状态", desc: "记录最近在做什么、在学什么。" },
+  { href: "/wish", label: "Wish", title: "愿望清单", desc: "把想做的事先放在这里。" },
+  { href: "/reading", label: "Reading", title: "书单", desc: "整理正在读和想读的书。" },
+  { href: "/inspirations", label: "Idea", title: "灵感收集", desc: "把点子、备忘和小想法存起来。" },
+  { href: "/timeline", label: "Timeline", title: "时间线", desc: "看见这个站是怎么长出来的。" },
+];
+
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
   const published = notes.filter((note) => note.status === "PUBLISHED");
@@ -78,6 +86,16 @@ export async function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-16 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {featureCards.map((card) => (
+            <a key={card.href} href={card.href} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 transition hover:-translate-y-1 hover:bg-white/[0.08]">
+              <div className="text-xs uppercase tracking-[0.25em] text-white/35">{card.label}</div>
+              <h2 className="mt-3 text-xl font-medium">{card.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-white/65">{card.desc}</p>
+            </a>
+          ))}
         </div>
 
         <div className="mt-16">
