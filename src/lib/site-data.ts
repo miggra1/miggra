@@ -18,9 +18,9 @@ export const fallbackInspirations = [
 ];
 
 export const fallbackReadingList = [
-  { title: "《你当像鸟飞往你的山》", detail: "读完后会想重新整理自己的成长轨迹。", status: "已读完" },
-  { title: "《The Almanack of Naval Ravikant》", detail: "适合慢慢读，很多句子值得反复想。", status: "在读" },
-  { title: "《Designing Interfaces》", detail: "做页面交互时会经常翻一翻。", status: "想读" },
+  { title: "《毛泽东传》", detail: "从人物经历和时代背景里看历史叙事的复杂性。", status: "已读完" },
+  { title: "《三体》", detail: "在宏大设定和人类处境之间来回拉扯，适合慢慢读。", status: "在读" },
+  { title: "《三体》相关延伸阅读", detail: "如果想继续了解世界观和科幻写作，可以顺着再读一些分析和访谈。", status: "想读" },
 ];
 
 export const fallbackTimeline = [
