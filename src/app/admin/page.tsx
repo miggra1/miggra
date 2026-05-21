@@ -19,7 +19,16 @@ export default async function AdminPage() {
 
   const { notes, dbError } = await listNotesSafe();
   const stats = computeStatsFromNotes(notes);
-  const contentItems = (await prisma.contentItem.findMany({ orderBy: [{ section: "asc" }, { order: "asc" }, { createdAt: "desc" }] })).map((item) => ({
+  const db = prisma as typeof prisma & {
+    homepageModule: {
+      findMany: typeof prisma.contentItem.findMany;
+    };
+    timelineMilestone: {
+      findMany: typeof prisma.contentItem.findMany;
+    };
+  };
+
+  const contentItems = (await db.contentItem.findMany({ orderBy: [{ section: "asc" }, { order: "asc" }, { createdAt: "desc" }] })).map((item) => ({
     id: item.id,
     section: item.section,
     title: item.title,
@@ -30,8 +39,14 @@ export default async function AdminPage() {
     active: item.active,
     createdAt: item.createdAt.toISOString(),
   }));
-  const homepageModules = await prisma.homepageModule.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] });
-  const timelineItems = await prisma.timelineMilestone.findMany({ orderBy: [{ kind: "asc" }, { order: "asc" }, { createdAt: "desc" }] });
+  const homepageModules = (await db.homepageModule.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] })).map((item: any) => ({
+    id: item.id,
+    key: item.key,
+    title: item.title,
+    enabled: item.enabled,
+    order: item.order,
+  }));
+  const timelineItems = await (db as any).timelineMilestone.findMany({ orderBy: [{ kind: "asc" }, { order: "asc" }, { createdAt: "desc" }] });
 
   return (
     <>
@@ -65,14 +80,14 @@ export default async function AdminPage() {
 
         <AdminClient initialNotes={notes} />
         <ContentAdminClient initialItems={contentItems} />
-        <TimelineMilestonesClient initialItems={timelineItems.map((item) => ({
-          id: item.id,
-          year: item.year,
+        <TimelineMilestonesClient initialItems={(timelineItems as any[]).map((item: any) => ({
+          id: String(item.id),
+          year: String(item.year),
           kind: item.kind,
-          title: item.title,
-          detail: item.detail,
-          order: item.order,
-          active: item.active,
+          title: String(item.title),
+          detail: String(item.detail),
+          order: Number(item.order),
+          active: Boolean(item.active),
         }))} />
         <HomepageModulesClient initialModules={homepageModules} />
         <GuestbookAdminClient />

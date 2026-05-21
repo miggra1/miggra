@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 type TimelineKind = "PERSONAL" | "SITE";
 
 type TimelineMilestone = {
-  id: string;
+  id?: string;
   year: string;
   kind: TimelineKind;
   title: string;
@@ -90,24 +90,24 @@ export function TimelineMilestonesClient({ initialItems }: { initialItems: Timel
                 <option value="ALL">全部节点</option>
                 {kinds.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
-              <button onClick={() => setEditing({ id: undefined, year: "2026", kind: "PERSONAL", title: "", detail: "", order: 0, active: true })} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)]">新建节点</button>
+              <button onClick={() => setEditing({ year: "2026", kind: "PERSONAL", title: "", detail: "", order: 0, active: true })} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)]">新建节点</button>
             </div>
           </div>
         </div>
 
         <div className="grid gap-4">
           {filtered.map((item) => (
-            <article key={item.id} className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
+            <article key={item.id ?? `${item.year}-${item.title}`} className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.year} · {item.kind === "PERSONAL" ? "人生节点" : "站点节点"}</div>
                   <h3 className="mt-2 text-lg font-medium">{item.title}</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => move(item.id, -1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">上移</button>
-                  <button onClick={() => move(item.id, 1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">下移</button>
+                  {item.id ? <button onClick={() => move(item.id as string, -1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">上移</button> : null}
+                  {item.id ? <button onClick={() => move(item.id as string, 1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">下移</button> : null}
                   <button onClick={() => setEditing(item)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">编辑</button>
-                  <button onClick={() => remove(item.id)} className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">删除</button>
+                  {item.id ? <button onClick={() => remove(item.id as string)} className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">删除</button> : null}
                 </div>
               </div>
               <p className="mt-4 whitespace-pre-wrap text-[var(--muted)]">{item.detail}</p>

@@ -4,7 +4,7 @@ import { FeaturePageShell } from "../components/feature-page-shell";
 import { GuestbookForm } from "./guestbook-form";
 
 export const runtime = "nodejs";
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "公开留言板",
