@@ -114,15 +114,15 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
       <section className="space-y-6">
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+        <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-white/35">Overview</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Overview</p>
               <h2 className="mt-2 text-2xl font-semibold">内容管理</h2>
             </div>
             <button
               onClick={handleCreate}
-              className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:scale-[1.02]"
+              className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02]"
             >
               新建碎碎念
             </button>

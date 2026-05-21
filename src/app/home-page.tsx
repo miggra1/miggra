@@ -24,24 +24,24 @@ export async function HomePage() {
   return (
     <>
       {dbError ? <DbErrorBanner /> : null}
-      <main className="relative min-h-screen overflow-hidden bg-[#07070a] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.28),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.18),transparent_28%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.14),transparent_30%)]" />
+      <main className="relative min-h-screen overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.28),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.18),transparent_28%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.14),transparent_30%)] dark:opacity-100 opacity-80" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] opacity-20" />
 
       <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 backdrop-blur-xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] backdrop-blur-xl">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
               个人碎碎念 / MySQL 后端 / 可公开访问
             </div>
 
             <div className="space-y-5">
-              <p className="text-sm uppercase tracking-[0.35em] text-white/40">Miggra Journal</p>
+              <p className="text-sm uppercase tracking-[0.35em] text-[var(--subtle)]">Miggra Journal</p>
               <h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-balance sm:text-6xl lg:text-7xl">
                 把日常、想法和情绪，放进一个很安静但很有光的地方。
               </h1>
-              <p className="max-w-2xl text-base leading-8 text-white/70 sm:text-lg">
+              <p className="max-w-2xl text-base leading-8 text-[var(--muted)] sm:text-lg">
                 这是一个为你个人碎碎念设计的网站：现代、艺术、极简，已经接入 MySQL 数据层，支持公开浏览和后台管理。
               </p>
             </div>
@@ -49,16 +49,16 @@ export async function HomePage() {
             <div className="flex flex-wrap gap-4">
               <a
                 href="#notes"
-                className="rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition hover:scale-[1.02] hover:bg-white/90"
+                className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90"
               >
                 查看碎碎念
               </a>
-              <Link href="/now" className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 backdrop-blur-xl transition hover:bg-white/10">
+              <Link href="/now" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
                 看看 Now
               </Link>
               <a
                 href="/admin"
-                className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 backdrop-blur-xl transition hover:bg-white/10"
+                className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]"
               >
                 进入后台
               </a>

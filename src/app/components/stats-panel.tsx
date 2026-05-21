@@ -11,25 +11,25 @@ type StatsPanelProps = {
 
 function StatCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <div className="text-xs uppercase tracking-[0.2em] text-white/35">{label}</div>
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
+      <div className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{label}</div>
       <div className="mt-3 text-3xl font-semibold">{value}</div>
-      {hint ? <div className="mt-2 text-xs text-white/45">{hint}</div> : null}
+      {hint ? <div className="mt-2 text-xs text-[var(--subtle)]">{hint}</div> : null}
     </div>
   );
 }
 
 export function StatsPanel({ title, subtitle, items, footerHref, footerLabel }: StatsPanelProps) {
   return (
-    <section className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+    <section className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 backdrop-blur-xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-white/35">Stats</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Stats</p>
           <h2 className="mt-2 text-2xl font-semibold">{title}</h2>
-          {subtitle ? <p className="mt-2 text-sm text-white/55">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-2 text-sm text-[var(--muted)]">{subtitle}</p> : null}
         </div>
         {footerHref && footerLabel ? (
-          <Link href={footerHref} className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10">
+          <Link href={footerHref} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm transition hover:bg-[var(--card-strong)]">
             {footerLabel}
           </Link>
         ) : null}
