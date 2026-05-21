@@ -4,6 +4,8 @@ import { computeStatsFromNotes } from "@/lib/stats";
 import { AdminClient } from "./admin-client";
 import { AdminLogin } from "./login";
 import { DbErrorBanner } from "../components/db-error-banner";
+import { prisma } from "@/lib/prisma";
+import { ContentAdminClient } from "./content-admin-client";
 
 export default async function AdminPage() {
   const authed = await isAdminAuthenticated();
@@ -14,6 +16,7 @@ export default async function AdminPage() {
 
   const { notes, dbError } = await listNotesSafe();
   const stats = computeStatsFromNotes(notes);
+  const contentItems = await prisma.contentItem.findMany({ orderBy: [{ section: "asc" }, { order: "asc" }, { createdAt: "desc" }] });
 
   return (
     <>
@@ -22,9 +25,9 @@ export default async function AdminPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
           <p className="text-sm uppercase tracking-[0.3em] text-white/35">Admin</p>
-          <h1 className="mt-3 text-3xl font-semibold">碎碎念后台</h1>
+          <h1 className="mt-3 text-3xl font-semibold">站点后台</h1>
           <p className="mt-3 max-w-2xl text-white/65">
-            这里可以直接管理内容：搜索、筛选、新建、编辑、删除。后面还能继续叠加统计、置顶和导出。
+            这里可以同时管理碎碎念和生活模块内容。搜索、筛选、新建、编辑、删除都在这里完成。
           </p>
         </header>
 
@@ -46,6 +49,7 @@ export default async function AdminPage() {
         </section>
 
         <AdminClient initialNotes={notes} />
+        <ContentAdminClient initialItems={contentItems} />
       </div>
     </main>
     </>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "./theme-provider";
 import { TopBar } from "./components/top-bar";
+import { SiteFooter } from "./components/site-footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s | Miggra Journal",
   },
   description: "一个现代、艺术化的个人碎碎念网站，支持后端和部署上线。",
-  keywords: ["个人网站", "碎碎念", "博客", "MySQL", "Next.js"],
+  keywords: ["个人网站", "碎碎念", "博客", "MySQL", "Next.js", "Now", "书单", "愿望清单"],
   alternates: {
     canonical: "/",
   },
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider>
           <TopBar />
           {children}
+          <SiteFooter />
         </ThemeProvider>
       </body>
     </html>

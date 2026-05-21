@@ -1,13 +1,15 @@
+import Link from "next/link";
 import { getHomePageData } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { StatsPanel } from "./components/stats-panel";
+import { FeatureHub } from "./components/feature-hub";
 
 const featureCards = [
-  { href: "/now", label: "Now", title: "当前状态", desc: "记录最近在做什么、在学什么。" },
-  { href: "/wish", label: "Wish", title: "愿望清单", desc: "把想做的事先放在这里。" },
-  { href: "/reading", label: "Reading", title: "书单", desc: "整理正在读和想读的书。" },
-  { href: "/inspirations", label: "Idea", title: "灵感收集", desc: "把点子、备忘和小想法存起来。" },
-  { href: "/timeline", label: "Timeline", title: "时间线", desc: "看见这个站是怎么长出来的。" },
+  { href: "/now", label: "Now", title: "当前状态", desc: "记录最近在做什么、在学什么。", count: "3" },
+  { href: "/wish", label: "Wish", title: "愿望清单", desc: "把想做的事先放在这里。", count: "4" },
+  { href: "/reading", label: "Reading", title: "书单", desc: "整理正在读和想读的书。", count: "3" },
+  { href: "/inspirations", label: "Idea", title: "灵感收集", desc: "把点子、备忘和小想法存起来。", count: "3" },
+  { href: "/timeline", label: "Timeline", title: "时间线", desc: "看见这个站是怎么长出来的。", count: "3" },
 ];
 
 export async function HomePage() {
@@ -51,6 +53,9 @@ export async function HomePage() {
               >
                 查看碎碎念
               </a>
+              <Link href="/now" className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 backdrop-blur-xl transition hover:bg-white/10">
+                看看 Now
+              </Link>
               <a
                 href="/admin"
                 className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 backdrop-blur-xl transition hover:bg-white/10"
@@ -88,14 +93,8 @@ export async function HomePage() {
           </div>
         </div>
 
-        <div className="mt-16 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {featureCards.map((card) => (
-            <a key={card.href} href={card.href} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 transition hover:-translate-y-1 hover:bg-white/[0.08]">
-              <div className="text-xs uppercase tracking-[0.25em] text-white/35">{card.label}</div>
-              <h2 className="mt-3 text-xl font-medium">{card.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-white/65">{card.desc}</p>
-            </a>
-          ))}
+        <div className="mt-16">
+          <FeatureHub items={featureCards} />
         </div>
 
         <div className="mt-16">
@@ -158,6 +157,11 @@ export async function HomePage() {
             <p className="mt-4 leading-8 text-white/65">
               用来记录碎碎念、灵感、观察和情绪。后端已经接到 MySQL，可以继续加登录、管理后台、标签和搜索。
             </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/reading" className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:bg-black/30">书单</Link>
+              <Link href="/wish" className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:bg-black/30">愿望清单</Link>
+              <Link href="/timeline" className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/75 transition hover:bg-black/30">时间线</Link>
+            </div>
           </div>
           <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-white/35">Tags</p>

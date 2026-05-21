@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
 
 const links = [
-  { href: "/notes", label: "归档" },
+  { href: "/notes", label: "碎碎念" },
   { href: "/now", label: "Now" },
   { href: "/wish", label: "愿望" },
   { href: "/reading", label: "书单" },

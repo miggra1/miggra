@@ -12,6 +12,14 @@ enum NoteStatus {
   PUBLISHED
 }
 
+enum ContentSection {
+  NOW
+  WISH
+  READING
+  INSPIRATION
+  TIMELINE
+}
+
 model Note {
   id        String     @id @default(cuid())
   title     String
@@ -24,4 +32,20 @@ model Note {
 
   @@map("notes")
   @@index([status, createdAt])
+}
+
+model ContentItem {
+  id        String         @id @default(cuid())
+  section   ContentSection
+  title     String
+  detail    String         @db.Text
+  meta      String?
+  status    String?
+  order     Int            @default(0)
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("content_items")
+  @@index([section, active, order])
 }
