@@ -66,7 +66,7 @@ export function HomepageModulesClient({ initialModules }: { initialModules: Modu
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Homepage</p>
             <h2 className="mt-2 text-2xl font-semibold">首页模块</h2>
           </div>
-          <button onClick={save} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)]">
+          <button type="button" onClick={save} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)]">
             保存首页模块
           </button>
         </div>

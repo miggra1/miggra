@@ -90,7 +90,7 @@ export function TimelineMilestonesClient({ initialItems }: { initialItems: Timel
                 <option value="ALL">全部节点</option>
                 {kinds.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
-              <button onClick={() => setEditing({ year: "2026", kind: "PERSONAL", title: "", detail: "", order: 0, active: true })} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)]">新建节点</button>
+              <button type="button" onClick={() => setEditing({ year: "2026", kind: "PERSONAL", title: "", detail: "", order: 0, active: true })} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)]">新建节点</button>
             </div>
           </div>
         </div>
@@ -104,10 +104,10 @@ export function TimelineMilestonesClient({ initialItems }: { initialItems: Timel
                   <h3 className="mt-2 text-lg font-medium">{item.title}</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {item.id ? <button onClick={() => move(item.id as string, -1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">上移</button> : null}
-                  {item.id ? <button onClick={() => move(item.id as string, 1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">下移</button> : null}
-                  <button onClick={() => setEditing(item)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">编辑</button>
-                  {item.id ? <button onClick={() => remove(item.id as string)} className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">删除</button> : null}
+                  {item.id ? <button type="button" onClick={() => move(item.id as string, -1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">上移</button> : null}
+                  {item.id ? <button type="button" onClick={() => move(item.id as string, 1)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">下移</button> : null}
+                  <button type="button" onClick={() => setEditing(item)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">编辑</button>
+                  {item.id ? <button type="button" onClick={() => remove(item.id as string)} className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">删除</button> : null}
                 </div>
               </div>
               <p className="mt-4 whitespace-pre-wrap text-[var(--muted)]">{item.detail}</p>
@@ -129,8 +129,8 @@ export function TimelineMilestonesClient({ initialItems }: { initialItems: Timel
         <label className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)]"><input type="checkbox" checked={editing?.active ?? true} onChange={(e) => setEditing((prev) => ({ ...(prev ?? { year: "2026", kind: "PERSONAL", title: "", detail: "", order: 0 }), active: e.target.checked }))} />启用</label>
         <textarea value={editing?.detail ?? ""} onChange={(e) => setEditing((prev) => ({ ...(prev ?? { year: "2026", kind: "PERSONAL", title: "", order: 0, active: true }), detail: e.target.value }))} placeholder="详细描述" rows={10} className="w-full rounded-3xl border border-[var(--border)] bg-transparent px-4 py-3 text-sm" />
         <div className="flex gap-3">
-          <button onClick={save} disabled={isPending} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50">保存</button>
-          <button onClick={() => setEditing(null)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm">取消</button>
+          <button type="button" onClick={save} disabled={isPending} className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] disabled:opacity-50">保存</button>
+          <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm">取消</button>
         </div>
       </aside>
     </div>

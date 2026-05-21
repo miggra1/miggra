@@ -121,6 +121,7 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
               <h2 className="mt-2 text-2xl font-semibold">内容管理</h2>
             </div>
             <button
+              type="button"
               onClick={handleCreate}
               className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02]"
             >
@@ -184,12 +185,14 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
               <p className="mt-4 whitespace-pre-wrap text-white/65">{note.text}</p>
               <div className="mt-5 flex gap-3">
                 <button
+                  type="button"
                   onClick={() => handleEdit(note)}
                   className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
                 >
                   编辑
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleDelete(note.id)}
                   className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200 transition hover:bg-red-500/20"
                 >
@@ -244,6 +247,7 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
           </div>
           <div className="mt-5 flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={handleSave}
               disabled={!editing || isPending}
               className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition disabled:cursor-not-allowed disabled:opacity-50"
@@ -251,6 +255,7 @@ export function AdminClient({ initialNotes }: AdminClientProps) {
               保存
             </button>
             <button
+              type="button"
               onClick={() => {
                 setEditing(null);
                 setCreating(false);

@@ -106,7 +106,7 @@ export function ContentAdminClient({ initialItems }: ContentAdminClientProps) {
                 <option value="ALL">全部模块</option>
                 {sections.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
-              <button onClick={handleCreate} className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black">新建内容</button>
+              <button type="button" onClick={handleCreate} className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black">新建内容</button>
             </div>
           </div>
         </div>
@@ -120,8 +120,8 @@ export function ContentAdminClient({ initialItems }: ContentAdminClientProps) {
                   <h3 className="mt-2 text-lg font-medium">{item.title}</h3>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleEdit(item)} className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm">编辑</button>
-                  <button onClick={() => remove(item.id)} className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">删除</button>
+                  <button type="button" onClick={() => handleEdit(item)} className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm">编辑</button>
+                  <button type="button" onClick={() => remove(item.id)} className="rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">删除</button>
                 </div>
               </div>
               <p className="mt-4 whitespace-pre-wrap text-white/65">{item.detail}</p>
@@ -143,8 +143,8 @@ export function ContentAdminClient({ initialItems }: ContentAdminClientProps) {
         <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/75"><input type="checkbox" checked={editing?.active ?? true} onChange={(e) => setEditing((prev) => ({ ...(prev ?? emptyForm()), active: e.target.checked }))} />启用</label>
         <textarea value={editing?.detail ?? ""} onChange={(e) => setEditing((prev) => ({ ...(prev ?? emptyForm()), detail: e.target.value }))} placeholder="内容" rows={10} className="w-full rounded-3xl border border-white/10 bg-black/30 px-4 py-3 text-sm" />
         <div className="flex gap-3">
-          <button onClick={save} disabled={isPending} className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black disabled:opacity-50">保存</button>
-          <button onClick={() => setEditing(null)} className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm">取消</button>
+          <button type="button" onClick={save} disabled={isPending} className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black disabled:opacity-50">保存</button>
+          <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm">取消</button>
         </div>
       </aside>
     </div>

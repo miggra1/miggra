@@ -52,13 +52,13 @@ export function GuestbookAdminClient() {
             </div>
             <p className="mt-4 whitespace-pre-wrap text-[var(--muted)]">{entry.message}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button onClick={() => changeStatus(entry.id, "PUBLISHED")} className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)]">
+              <button type="button" onClick={() => changeStatus(entry.id, "PUBLISHED")} className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)]">
                 发布
               </button>
-              <button onClick={() => changeStatus(entry.id, "PENDING")} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">
+              <button type="button" onClick={() => changeStatus(entry.id, "PENDING")} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">
                 设为待审
               </button>
-              <button onClick={() => changeStatus(entry.id, "HIDDEN")} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">
+              <button type="button" onClick={() => changeStatus(entry.id, "HIDDEN")} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">
                 隐藏
               </button>
             </div>

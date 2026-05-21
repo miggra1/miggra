@@ -38,6 +38,7 @@ export function AdminLogin() {
         />
         {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
         <button
+          type="button"
           onClick={handleLogin}
           className="mt-6 w-full rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition hover:opacity-90"
         >
