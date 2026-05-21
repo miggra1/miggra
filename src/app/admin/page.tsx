@@ -16,7 +16,10 @@ export default async function AdminPage() {
 
   const { notes, dbError } = await listNotesSafe();
   const stats = computeStatsFromNotes(notes);
-  const contentItems = await prisma.contentItem.findMany({ orderBy: [{ section: "asc" }, { order: "asc" }, { createdAt: "desc" }] });
+  const contentItems = (await prisma.contentItem.findMany({ orderBy: [{ section: "asc" }, { order: "asc" }, { createdAt: "desc" }] })).map((item) => ({
+    ...item,
+    createdAt: item.createdAt.toISOString(),
+  }));
 
   return (
     <>
