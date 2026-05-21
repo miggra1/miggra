@@ -5,11 +5,11 @@ import { StatsPanel } from "./components/stats-panel";
 import { FeatureHub } from "./components/feature-hub";
 
 const featureCards = [
-  { href: "/now", label: "Now", title: "当前状态", desc: "记录最近在做什么、在学什么。", count: "3" },
-  { href: "/wish", label: "Wish", title: "愿望清单", desc: "把想做的事先放在这里。", count: "4" },
-  { href: "/reading", label: "Reading", title: "书单", desc: "整理正在读和想读的书。", count: "3" },
-  { href: "/inspirations", label: "Idea", title: "灵感收集", desc: "把点子、备忘和小想法存起来。", count: "3" },
-  { href: "/timeline", label: "Timeline", title: "时间线", desc: "看见这个站是怎么长出来的。", count: "3" },
+  { href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。", count: "3" },
+  { href: "/wish", label: "Wish", title: "愿望清单", description: "把想做的事先放在这里。", count: "4" },
+  { href: "/reading", label: "Reading", title: "书单", description: "整理正在读和想读的书。", count: "3" },
+  { href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。", count: "3" },
+  { href: "/timeline", label: "Timeline", title: "时间线", description: "看见这个站是怎么长出来的。", count: "3" },
 ];
 
 export async function HomePage() {
