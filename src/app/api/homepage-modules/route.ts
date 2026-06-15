@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isAdminAuthenticated } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "请先登录。" }, { status: 401 });
+  }
   const body = await request.json().catch(() => null);
   if (!body || !Array.isArray(body.modules)) {
     return NextResponse.json({ error: "模块数据不正确。" }, { status: 400 });

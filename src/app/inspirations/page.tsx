@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { FeaturePageShell } from "../components/feature-page-shell";
 import { fallbackInspirations } from "@/lib/site-data";
-import { listContentItems } from "@/lib/content";
+import { listContentItemsSafe } from "@/lib/content";
+import { DbErrorBanner } from "../components/db-error-banner";
 import { InspirationsClient } from "./inspirations-client";
 
 export const revalidate = 60;
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function InspirationsPage() {
-  const items = await listContentItems("INSPIRATION");
+  const { items, dbError } = await listContentItemsSafe("INSPIRATION");
   const source = items.length
     ? items.map((item, index) => ({
         title: item.title,
@@ -31,6 +32,7 @@ export default async function InspirationsPage() {
 
   return (
     <FeaturePageShell eyebrow="Inspiration" title="灵感墙" description="把脑子里突然冒出来的想法先放进来，之后再慢慢整理。">
+      {dbError ? <DbErrorBanner /> : null}
       <InspirationsClient items={source} />
     </FeaturePageShell>
   );

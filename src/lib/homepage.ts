@@ -7,6 +7,15 @@ export async function getHomepageModules() {
   });
 }
 
+export async function getHomepageModulesSafe() {
+  try {
+    const modules = await getHomepageModules();
+    return { modules, dbError: false as const };
+  } catch {
+    return { modules: [] as Awaited<ReturnType<typeof getHomepageModules>>, dbError: true as const };
+  }
+}
+
 export async function ensureDefaultHomepageModules() {
   const count = await prisma.homepageModule.count();
   if (count > 0) return;

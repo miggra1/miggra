@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { FeaturePageShell } from "../components/feature-page-shell";
 import { fallbackTimeline } from "@/lib/site-data";
-import { listContentItems } from "@/lib/content";
-import { listTimelineMilestones } from "@/lib/timeline";
+import { listContentItemsSafe } from "@/lib/content";
+import { listTimelineMilestonesSafe } from "@/lib/timeline";
+import { DbErrorBanner } from "../components/db-error-banner";
 
 export const revalidate = 60;
 export const runtime = "nodejs";
@@ -13,8 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default async function TimelinePage() {
-  const contentItems = await listContentItems("TIMELINE");
-  const milestones = await listTimelineMilestones();
+  const { items: contentItems, dbError: contentDbError } = await listContentItemsSafe("TIMELINE");
+  const { milestones, dbError: milestonesDbError } = await listTimelineMilestonesSafe();
+  const dbError = contentDbError || milestonesDbError;
   const source = contentItems.length
     ? contentItems.map((item) => ({
         year: item.meta ?? item.status ?? "",
@@ -29,6 +31,7 @@ export default async function TimelinePage() {
 
   return (
     <FeaturePageShell eyebrow="Timeline" title="人生节点" description="把个人站的变化和一些重要节点按年份排起来。">
+      {dbError ? <DbErrorBanner /> : null}
       <div className="space-y-10">
         <section>
           <div className="mb-4 flex items-end justify-between gap-4">

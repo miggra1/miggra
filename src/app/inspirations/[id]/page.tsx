@@ -32,7 +32,7 @@ export default async function InspirationsDetailPage({ params }: { params: Promi
   return (
     <ContentDetailShell eyebrow="Inspiration" title={item.title} meta={item.meta ?? "Idea"} backHref="/inspirations" backLabel="返回灵感" listHref="/notes" listLabel="碎碎念">
       <DetailNav prevHref={prevHref} nextHref={nextHref} />
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 leading-8 text-white/75">
+      <section className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 leading-8 text-[var(--muted)]">
         {item.detail}
       </section>
       <RelatedItems title="更多灵感" items={related} />

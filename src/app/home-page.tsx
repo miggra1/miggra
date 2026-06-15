@@ -3,7 +3,7 @@ import { getHomePageData } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { StatsPanel } from "./components/stats-panel";
 import { FeatureHub } from "./components/feature-hub";
-import { getHomepageModules } from "@/lib/homepage";
+import { getHomepageModulesSafe } from "@/lib/homepage";
 
 const fallbackFeatureCards = [
   { href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。", count: "3" },
@@ -16,7 +16,7 @@ const fallbackFeatureCards = [
 
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
-  const modules = await getHomepageModules();
+  const { modules, dbError: modulesDbError } = await getHomepageModulesSafe();
   const published = notes.filter((note) => note.status === "PUBLISHED");
   const latest = published.slice(0, 6);
   const pinned = published.find((note) => note.pinned);
@@ -33,7 +33,7 @@ export async function HomePage() {
 
   return (
     <>
-      {dbError ? <DbErrorBanner /> : null}
+      {dbError || modulesDbError ? <DbErrorBanner /> : null}
       <main className="relative min-h-screen overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.28),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.18),transparent_28%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.14),transparent_30%)] opacity-80" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] opacity-20" />

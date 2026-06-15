@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createContentItem, listContentItems, type ContentSection } from "@/lib/content";
+import { isAdminAuthenticated } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +20,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "请先登录。" }, { status: 401 });
+  }
   const body = await request.json().catch(() => null);
   if (!body || typeof body.section !== "string" || typeof body.title !== "string" || typeof body.detail !== "string") {
     return NextResponse.json({ error: "内容不完整。" }, { status: 400 });

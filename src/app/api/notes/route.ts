@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createNote, listNotesSafe } from "@/lib/notes";
+import { isAdminAuthenticated } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +11,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "请先登录。" }, { status: 401 });
+  }
   const body = await request.json().catch(() => null);
 
   if (!body || typeof body.title !== "string" || typeof body.text !== "string") {

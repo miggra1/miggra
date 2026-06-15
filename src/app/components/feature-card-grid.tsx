@@ -20,22 +20,24 @@ export function FeatureCardGrid({ items, columns = 3 }: FeatureCardGridProps) {
     <section className={columns === 2 ? "grid gap-4 md:grid-cols-2" : "grid gap-4 md:grid-cols-2 xl:grid-cols-3"}>
       {items.map((item) => {
         const content = (
-          <article className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 transition hover:bg-white/[0.08]">
-            {item.meta ? <div className="text-xs uppercase tracking-[0.2em] text-white/35">{item.meta}</div> : null}
+          <article className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
+            {item.meta ? <div className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta}</div> : null}
             <div className="mt-3 flex items-start justify-between gap-4">
               <h2 className="text-xl font-medium">{item.title}</h2>
-              {item.status ? <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60">{item.status}</span> : null}
+              {item.status ? <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">{item.status}</span> : null}
             </div>
-            <p className="mt-4 leading-8 text-white/70">{item.detail}</p>
+            <p className="mt-4 leading-8 text-[var(--muted)]">{item.detail}</p>
           </article>
         );
 
+        const key = (item as any).id ?? item.href ?? `${item.title}-${items.indexOf(item)}`;
+
         return item.href ? (
-          <Link key={item.title} href={item.href} className="block cursor-pointer">
+          <Link key={key} href={item.href} className="block cursor-pointer">
             {content}
           </Link>
         ) : (
-          <div key={item.title}>{content}</div>
+          <div key={key}>{content}</div>
         );
       })}
     </section>

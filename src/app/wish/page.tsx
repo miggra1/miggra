@@ -3,7 +3,8 @@ import Link from "next/link";
 import { FeaturePageShell } from "../components/feature-page-shell";
 import { FeatureCardGrid } from "../components/feature-card-grid";
 import { fallbackWishItems } from "@/lib/site-data";
-import { listContentItems } from "@/lib/content";
+import { listContentItemsSafe } from "@/lib/content";
+import { DbErrorBanner } from "../components/db-error-banner";
 
 export const revalidate = 60;
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WishPage() {
-  const items = await listContentItems("WISH");
+  const { items, dbError } = await listContentItemsSafe("WISH");
   const source = items.length
     ? items.map((item) => ({ title: item.title, detail: item.detail, status: item.status ?? undefined, meta: item.meta ?? "Goal" }))
     : fallbackWishItems.map((item) => ({ title: item.title, detail: item.detail, status: item.status, meta: "Goal" }));
@@ -25,6 +26,7 @@ export default async function WishPage() {
       title="愿望清单"
       description="一些想完成、想体验、想拥有的事情。它们会慢慢被更新掉。"
     >
+      {dbError ? <DbErrorBanner /> : null}
       <FeatureCardGrid columns={2} items={source} />
     </FeaturePageShell>
   );

@@ -12,19 +12,25 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document !== "undefined") {
+      const attr = document.documentElement.dataset.theme;
+      if (attr === "light" || attr === "dark") return attr;
+    }
+    return "dark";
+  });
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("miggra-theme") as Theme | null;
-    const preferred: Theme = saved === "light" || saved === "dark" ? saved : "dark";
-    setTheme(preferred);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem("miggra-theme", theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const value = useMemo(
     () => ({

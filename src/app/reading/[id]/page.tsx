@@ -32,7 +32,7 @@ export default async function ReadingDetailPage({ params }: { params: Promise<{ 
   return (
     <ContentDetailShell eyebrow="Reading" title={item.title} meta={item.status ?? item.meta ?? "Book"} backHref="/reading" backLabel="返回书单" listHref="/notes" listLabel="碎碎念">
       <DetailNav prevHref={prevHref} nextHref={nextHref} />
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 leading-8 text-white/75">
+      <section className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 leading-8 text-[var(--muted)]">
         {item.detail}
       </section>
       <RelatedItems title="同系列书单" items={related} />

@@ -60,7 +60,7 @@ export function InspirationsClient({ items }: { items: InspirationItem[] }) {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item, index) => (
             <div
-              key={item.title + item.detail}
+              key={(item as any).id ?? `${item.title}-${index}`}
               className={`rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-1 hover:bg-[var(--card-strong)] ${index % 5 === 0 ? "md:col-span-2" : ""}`}
             >
               <div className="flex items-start justify-between gap-4">

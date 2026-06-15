@@ -27,6 +27,15 @@ export async function listContentItems(section: ContentSection) {
   });
 }
 
+export async function listContentItemsSafe(section: ContentSection) {
+  try {
+    const items = await listContentItems(section);
+    return { items, dbError: false as const };
+  } catch {
+    return { items: [] as Awaited<ReturnType<typeof listContentItems>>, dbError: true as const };
+  }
+}
+
 export async function listAllContentItems() {
   return prisma.contentItem.findMany({
     orderBy: [{ section: "asc" }, { order: "asc" }, { createdAt: "desc" }],

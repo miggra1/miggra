@@ -19,26 +19,25 @@ export async function GET() {
 
   const items = published
     .map(
-      (note) => `
-        <item>
-          <title><![CDATA[${note.title}]]></title>
-          <link>${baseUrl}/notes/${note.id}</link>
-          <guid>${note.id}</guid>
-          <pubDate>${new Date(note.createdAt).toUTCString()}</pubDate>
-          <description><![CDATA[${note.text}]]></description>
-        </item>`,
+      (note) => `<item>
+  <title><![CDATA[${note.title}]]></title>
+  <link>${baseUrl}/notes/${note.id}</link>
+  <guid>${note.id}</guid>
+  <pubDate>${new Date(note.createdAt).toUTCString()}</pubDate>
+  <description><![CDATA[${note.text}]]></description>
+</item>`,
     )
     .join("\n");
 
   const rss = `<?xml version="1.0" encoding="UTF-8" ?>
-    <rss version="2.0">
-      <channel>
-        <title>Miggra Journal</title>
-        <link>${baseUrl}</link>
-        <description>个人碎碎念订阅源</description>
-        ${items}
-      </channel>
-    </rss>`;
+<rss version="2.0">
+  <channel>
+    <title>Miggra Journal</title>
+    <link>${baseUrl}</link>
+    <description>个人碎碎念订阅源</description>
+${items}
+  </channel>
+</rss>`;
 
   return new NextResponse(rss, {
     headers: {

@@ -41,7 +41,7 @@ export default async function TimelineDetailPage({ params }: { params: Promise<{
       listLabel="碎碎念"
     >
       <DetailNav prevHref={prevHref} nextHref={nextHref} />
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 leading-8 text-white/75">
+      <section className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 leading-8 text-[var(--muted)]">
         {item.detail}
       </section>
       <RelatedItems title="同类节点" items={related} />

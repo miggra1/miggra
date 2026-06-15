@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function GuestbookForm() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const router = useRouter();
 
   const submit = async () => {
     setStatus(null);
@@ -24,7 +26,7 @@ export function GuestbookForm() {
     setName("");
     setMessage("");
     setStatus("已发布，谢谢你的留言。");
-    window.location.reload();
+    router.refresh();
   };
 
   return (

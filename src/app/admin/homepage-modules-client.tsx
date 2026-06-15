@@ -41,10 +41,9 @@ export function HomepageModulesClient({ initialModules }: { initialModules: Modu
   };
 
   const update = (id: string, patch: Partial<ModuleItem>) => {
-    setModules((prev) => {
-      const next = prev.map((module) => (module.id === id ? { ...module, ...patch } : module));
-      return next.map((module, index) => ({ ...module, order: index + 1 }));
-    });
+    setModules((prev) =>
+      prev.map((module) => (module.id === id ? { ...module, ...patch } : module)),
+    );
   };
 
   const move = (id: string, direction: -1 | 1) => {
