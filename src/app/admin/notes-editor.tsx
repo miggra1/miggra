@@ -28,42 +28,56 @@ export function NotesEditor({ mode, initial }: Props) {
         body: JSON.stringify({ title, text, tag, status, pinned }),
       });
       if (!r.ok) { setError("保存失败"); return; }
-      router.push("/admin/notes");
-      router.refresh();
+      router.push("/admin/notes"); router.refresh();
     });
   };
 
   return (
-    <div className="max-w-2xl mx-auto animate-in">
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <p className="text-xs text-[var(--subtle)] uppercase tracking-widest">碎碎念</p>
-          <h1 className="text-2xl font-medium mt-1">{mode === "new" ? "写点什么" : "编辑"}</h1>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={() => router.back()} className="px-4 py-2 text-sm text-[var(--fg-secondary)] rounded-full border border-[var(--border)] transition hover:bg-[var(--card)]">取消</button>
-          <button onClick={save} disabled={isPending} className="px-5 py-2 text-sm font-medium text-white bg-[var(--accent)] rounded-full transition hover:opacity-90 disabled:opacity-40">保存</button>
+    <div className="max-w-3xl mx-auto animate-in px-6 py-10">
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-12">
+        <button onClick={() => router.back()} className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition flex items-center gap-1">
+          ← 返回列表
+        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="btn text-sm">取消</button>
+          <button onClick={save} disabled={isPending} className="btn btn-primary text-sm">{mode === "new" ? "发布" : "保存"}</button>
         </div>
       </div>
 
-      {error && <p className="mb-6 text-sm text-[var(--rose)]">{error}</p>}
+      {error && (
+        <div className="mb-8 px-4 py-3 rounded-lg text-sm border border-[var(--rose)]/20 bg-[var(--rose)]/5 text-[var(--rose)]">{error}</div>
+      )}
 
-      <div className="space-y-8">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" autoFocus
-          className="w-full text-3xl font-medium bg-transparent border-none outline-none placeholder:text-[var(--subtle)]" />
+      {/* Writing area */}
+      <div className="space-y-6">
+        <input
+          value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题..."
+          autoFocus
+          className="w-full text-4xl font-semibold bg-transparent border-none outline-none placeholder:text-[var(--subtle)] tracking-tight"
+        />
 
-        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="写下你想说的..." rows={18}
-          className="w-full text-[15px] leading-relaxed bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]" />
+        <textarea
+          value={text} onChange={(e) => setText(e.target.value)}
+          placeholder="写点什么..."
+          rows={20}
+          className="w-full text-[16px] leading-[1.8] bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]"
+        />
 
-        <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-[var(--border)]">
-          <input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="标签" className="w-28 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm outline-none" />
-          <select value={status} onChange={(e) => setStatus(e.target.value as NoteStatus)} className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm outline-none">
+        {/* Meta bar */}
+        <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
+          <input value={tag} onChange={(e) => setTag(e.target.value)}
+            className="input w-28 text-sm" placeholder="标签" />
+          <select value={status} onChange={(e) => setStatus(e.target.value as NoteStatus)}
+            className="input text-sm">
             <option value="PUBLISHED">发布</option>
             <option value="DRAFT">草稿</option>
           </select>
-          <label className="flex items-center gap-2 text-sm text-[var(--fg-secondary)]">
-            <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} /> 置顶
+          <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer select-none">
+            <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="accent-[var(--accent)]" />
+            置顶
           </label>
+          <span className="text-[11px] text-[var(--subtle)] ml-auto">{text.length} 字</span>
         </div>
       </div>
     </div>

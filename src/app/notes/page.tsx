@@ -11,25 +11,28 @@ export default async function NotesPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <header className="mb-12">
-          <p className="text-xs text-[var(--subtle)] uppercase tracking-widest">Journal</p>
-          <h1 className="text-[32px] font-medium mt-2 tracking-tight">碎碎念</h1>
-          <p className="text-[15px] text-[var(--fg-secondary)] mt-2">按时间排列，每条都是一个瞬间</p>
+        <header className="mb-12 animate-in">
+          <p className="text-[11px] uppercase tracking-widest text-[#3b82f6]">Journal</p>
+          <h1 className="text-[36px] font-semibold mt-2 tracking-tight">碎碎念</h1>
+          <p className="text-[var(--fg-secondary)] mt-2 text-sm">{published.length} 条公开记录，按时间排列</p>
         </header>
 
-        <div className="space-y-px">
+        <div className="space-y-0.5">
           {published.length === 0 && (
-            <p className="text-[var(--subtle)] text-sm py-8 text-center">还没有内容</p>
+            <div className="text-center py-20 surface rounded-xl">
+              <p className="text-4xl mb-3">📖</p>
+              <p className="text-[var(--muted)] text-sm">还没有公开的碎碎念</p>
+            </div>
           )}
-          {published.map((note) => (
+          {published.map((note, i) => (
             <Link key={note.id} href={`/notes/${note.id}`}
-              className="flex items-center gap-4 px-4 py-3.5 rounded-lg transition hover:bg-[var(--card)] group"
+              className="flex items-center gap-4 px-4 py-3.5 surface-hover rounded-lg animate-in"
+              style={{ animationDelay: `${i * 40}ms` }}
             >
-              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: note.pinned ? "var(--rose)" : "var(--subtle)" }} />
-              <span className="text-[13px] text-[var(--fg-secondary)] min-w-[72px]">{note.tag}</span>
-              <span className="flex-1 text-[15px] truncate font-medium">{note.title}</span>
-              <time className="text-[13px] text-[var(--subtle)] tabular-nums">{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
-              <span className="text-[var(--subtle)] opacity-0 group-hover:opacity-100 transition text-xs">→</span>
+              <span className="h-2 w-2 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: note.pinned ? "var(--rose)" : "var(--subtle)" }} />
+              <span className="text-[12px] text-[var(--muted)] w-16 shrink-0">{note.tag}</span>
+              <span className="flex-1 text-[15px] font-medium truncate">{note.title}</span>
+              <time className="text-[12px] text-[var(--subtle)] tabular-nums">{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
             </Link>
           ))}
         </div>

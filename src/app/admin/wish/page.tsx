@@ -5,22 +5,23 @@ export default async function AdminWishList() {
   const items = await listContentItems("WISH").catch(() => []);
 
   return (
-    <div className="px-8 py-10 max-w-4xl animate-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="px-6 py-10 max-w-4xl animate-in">
+      <div className="flex items-end justify-between mb-8">
         <div>
-          <p className="text-xs text-[var(--subtle)] uppercase tracking-widest">Wish</p>
-          <h1 className="text-[28px] font-medium mt-1">愿望清单</h1>
-          <p className="text-sm text-[var(--fg-secondary)] mt-1">{items.length} 条</p>
+          <p className="text-[11px] uppercase tracking-widest text-[#8b5cf6]">Wish</p>
+          <h1 className="text-[28px] font-semibold mt-1 tracking-tight">愿望清单</h1>
+          <p className="text-sm text-[var(--fg-secondary)] mt-1">{items.length} 个愿望</p>
         </div>
-        <Link href="/admin/wish/new" className="px-5 py-2.5 text-sm font-medium text-white bg-[var(--accent)] rounded-full transition hover:opacity-90">+ 新建</Link>
+        <Link href="/admin/wish/new" className="btn btn-primary">+ 许愿</Link>
       </div>
-      <div className="space-y-px">
-        {items.map((item) => (
-          <Link key={item.id} href={`/admin/wish/${item.id}`} className="flex items-center gap-4 px-4 py-3 rounded-lg transition hover:bg-[var(--card)] group">
-            <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.active ? "var(--green)" : "var(--subtle)" }} />
-            <span className="text-xs text-[var(--fg-secondary)] min-w-[80px]">{item.status || "—"}</span>
-            <span className="flex-1 text-[15px] truncate">{item.title}</span>
-            <span className="text-xs text-[var(--subtle)] opacity-0 group-hover:opacity-100 transition">编辑 →</span>
+      <div className="space-y-0.5">
+        {items.length === 0 && <p className="text-center py-20 text-[var(--muted)] text-sm">写下第一个愿望吧</p>}
+        {items.map((item, i) => (
+          <Link key={item.id} href={`/admin/wish/${item.id}`} className="flex items-center gap-4 px-4 py-3 surface-hover rounded-lg" style={{ animationDelay: `${i * 30}ms` }}>
+            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.active ? "var(--green)" : "var(--subtle)" }} />
+            <span className="text-[12px] text-[var(--muted)] w-20 truncate">{item.status || "—"}</span>
+            <span className="flex-1 text-[15px] font-medium truncate">{item.title}</span>
+            <span className="text-[var(--subtle)] text-xs">→</span>
           </Link>
         ))}
       </div>

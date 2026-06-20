@@ -9,10 +9,11 @@ type Props = {
   mode: "new" | "edit";
   section: ContentSection;
   sectionLabel: string;
+  accentColor?: string;
   initial?: { id: string; title: string; detail: string; meta: string; status: string; order: number; active: boolean };
 };
 
-export function ContentEditor({ mode, section, sectionLabel, initial }: Props) {
+export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(--accent)", initial }: Props) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [detail, setDetail] = useState(initial?.detail ?? "");
@@ -38,36 +39,31 @@ export function ContentEditor({ mode, section, sectionLabel, initial }: Props) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto animate-in">
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <p className="text-xs text-[var(--subtle)] uppercase tracking-widest">{sectionLabel}</p>
-          <h1 className="text-2xl font-medium mt-1">{mode === "new" ? `新建${sectionLabel}` : `编辑${sectionLabel}`}</h1>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={() => router.back()} className="px-4 py-2 text-sm text-[var(--fg-secondary)] rounded-full border border-[var(--border)] transition hover:bg-[var(--card)]">取消</button>
-          <button onClick={save} disabled={isPending} className="px-5 py-2 text-sm font-medium text-white bg-[var(--accent)] rounded-full transition hover:opacity-90 disabled:opacity-40">保存</button>
+    <div className="max-w-3xl mx-auto animate-in px-6 py-10">
+      <div className="flex items-center justify-between mb-12">
+        <button onClick={() => router.back()} className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition">← 返回列表</button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="btn text-sm">取消</button>
+          <button onClick={save} disabled={isPending} className="btn btn-primary text-sm">保存</button>
         </div>
       </div>
 
-      {error && <p className="mb-6 text-sm text-[var(--rose)]">{error}</p>}
+      {error && <div className="mb-8 px-4 py-3 rounded-lg text-sm border border-[var(--rose)]/20 bg-[var(--rose)]/5 text-[var(--rose)]">{error}</div>}
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" autoFocus
-          className="w-full text-3xl font-medium bg-transparent border-none outline-none placeholder:text-[var(--subtle)]" />
+          className="w-full text-4xl font-semibold bg-transparent border-none outline-none placeholder:text-[var(--subtle)] tracking-tight" />
 
-        <textarea value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="内容..." rows={16}
-          className="w-full text-[15px] leading-relaxed bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]" />
+        <textarea value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="内容..."
+          rows={16}
+          className="w-full text-[16px] leading-[1.8] bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]" />
 
-        <div className="flex flex-wrap gap-4 pt-4 border-t border-[var(--border)]">
-          <input value={meta} onChange={(e) => setMeta(e.target.value)} placeholder="副标题"
-            className="w-40 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm outline-none" />
-          <input value={status} onChange={(e) => setStatus(e.target.value)} placeholder="状态"
-            className="w-32 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm outline-none" />
-          <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} placeholder="排序"
-            className="w-20 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm outline-none" />
-          <label className="flex items-center gap-2 text-sm text-[var(--fg-secondary)]">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> 启用
+        <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
+          <input value={meta} onChange={(e) => setMeta(e.target.value)} className="input w-32 text-sm" placeholder="副标题" />
+          <input value={status} onChange={(e) => setStatus(e.target.value)} className="input w-28 text-sm" placeholder="状态" />
+          <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} className="input w-20 text-sm" placeholder="排序" />
+          <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer">
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-[var(--accent)]" /> 启用
           </label>
         </div>
       </div>
