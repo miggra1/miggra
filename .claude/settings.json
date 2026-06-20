@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(ssh-keyscan github.com >> ~/.ssh/known_hosts 2>&1 || echo \"SSH_scan_failed\")",
+      "Bash(ssh-keyscan github.com)",
+      "Bash(gh auth *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\86139\\.ssh"
     ]
   }
 }

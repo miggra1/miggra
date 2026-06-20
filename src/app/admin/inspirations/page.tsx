@@ -1,18 +1,24 @@
 import { listContentItems } from "@/lib/content";
-import { ContentSectionEditor } from "../content-section-editor";
+import Link from "next/link";
 
-export default async function AdminInspirationsPage() {
+export default async function AdminInspirationsList() {
   const items = await listContentItems("INSPIRATION").catch(() => []);
 
   return (
-    <div className="min-h-screen bg-[#c4a87c] text-[#3d3027]">
-      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,90,43,0.1) 2px, rgba(139,90,43,0.1) 3px)" }} />
-      <div className="relative px-6 py-8">
-        <header className="mb-8 inline-block -rotate-1 rounded-lg border-2 border-amber-700/30 bg-yellow-100/90 px-6 py-3 shadow-lg">
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-amber-700">Corkboard</p>
-          <h1 className="font-serif text-2xl italic text-amber-900">灵感工坊 ◆</h1>
-        </header>
-        <ContentSectionEditor section="INSPIRATION" initialItems={items.map((i) => ({ id: i.id, section: i.section as any, title: i.title, detail: i.detail, meta: i.meta ?? "", status: i.status ?? "", order: i.order, active: i.active, createdAt: i.createdAt.toISOString() }))} />
+    <div className="px-8 py-10 max-w-4xl animate-in">
+      <div className="flex items-center justify-between mb-8">
+        <div><p className="text-xs text-[var(--subtle)] uppercase tracking-widest">Inspirations</p><h1 className="text-[28px] font-medium mt-1">灵感</h1><p className="text-sm text-[var(--fg-secondary)] mt-1">{items.length} 条</p></div>
+        <Link href="/admin/inspirations/new" className="px-5 py-2.5 text-sm font-medium text-white bg-[var(--accent)] rounded-full transition hover:opacity-90">+ 新建</Link>
+      </div>
+      <div className="space-y-px">
+        {items.map((item) => (
+          <Link key={item.id} href={`/admin/inspirations/${item.id}`} className="flex items-center gap-4 px-4 py-3 rounded-lg transition hover:bg-[var(--card)] group">
+            <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.active ? "var(--green)" : "var(--subtle)" }} />
+            <span className="text-xs text-[var(--fg-secondary)] min-w-[80px]">{item.meta || "—"}</span>
+            <span className="flex-1 text-[15px] truncate">{item.title}</span>
+            <span className="text-xs text-[var(--subtle)] opacity-0 group-hover:opacity-100 transition">编辑 →</span>
+          </Link>
+        ))}
       </div>
     </div>
   );

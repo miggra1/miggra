@@ -1,29 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { TimelineMilestonesClient } from "../timeline-milestones-client";
+import Link from "next/link";
 
-export default async function AdminTimelinePage() {
-  const timelineItems = await prisma.timelineMilestone.findMany({
-    orderBy: [{ kind: "asc" }, { order: "asc" }, { createdAt: "desc" }],
-  }).catch(() => []);
+export default async function AdminTimelineList() {
+  const items = await prisma.timelineMilestone.findMany({ orderBy: [{ kind: "asc" }, { order: "asc" }] }).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-[#2a2520] text-[#e0d8ce]">
-      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.2) 0%, transparent 50%)" }} />
-      <div className="relative px-6 py-8">
-        <header className="mb-8">
-          <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-amber-500/60">Archive</p>
-          <h1 className="mt-2 font-serif text-3xl font-light italic">时间档案馆 ◷</h1>
-          <p className="mt-1 font-mono text-xs text-stone-500">记录人生和站点的每个节点</p>
-        </header>
-        <TimelineMilestonesClient initialItems={timelineItems.map((item: any) => ({
-          id: String(item.id),
-          year: String(item.year),
-          kind: item.kind,
-          title: String(item.title),
-          detail: String(item.detail),
-          order: Number(item.order),
-          active: Boolean(item.active),
-        }))} />
+    <div className="px-8 py-10 max-w-4xl animate-in">
+      <div className="flex items-center justify-between mb-8">
+        <div><p className="text-xs text-[var(--subtle)] uppercase tracking-widest">Timeline</p><h1 className="text-[28px] font-medium mt-1">时间线</h1><p className="text-sm text-[var(--fg-secondary)] mt-1">{items.length} 个节点</p></div>
+        <Link href="/admin/timeline/new" className="px-5 py-2.5 text-sm font-medium text-white bg-[var(--accent)] rounded-full transition hover:opacity-90">+ 新建</Link>
+      </div>
+      <div className="space-y-px">
+        {items.map((item: any) => (
+          <Link key={item.id} href={`/admin/timeline/${item.id}`} className="flex items-center gap-4 px-4 py-3 rounded-lg transition hover:bg-[var(--card)] group">
+            <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.active ? "var(--green)" : "var(--subtle)" }} />
+            <span className="text-xs text-[var(--fg-secondary)] min-w-[60px]">{item.year}</span>
+            <span className="text-xs text-[var(--fg-secondary)] min-w-[80px]">{item.kind === "PERSONAL" ? "个人" : "站点"}</span>
+            <span className="flex-1 text-[15px] truncate">{item.title}</span>
+            <span className="text-xs text-[var(--subtle)] opacity-0 group-hover:opacity-100 transition">编辑 →</span>
+          </Link>
+        ))}
       </div>
     </div>
   );
