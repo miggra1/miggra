@@ -77,7 +77,7 @@ export function NotesEditor({ mode, initial }: Props) {
             <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="accent-[var(--accent)]" />
             置顶
           </label>
-          <span className="text-[11px] text-[var(--subtle)] ml-auto">{text.length} 字</span>
+          <span className="text-[11px] text-[var(--subtle)] ml-auto">{text.length} 字 · 约 {Math.max(1, Math.ceil(text.length / 400))} 分钟阅读</span>
         </div>
       </div>
     </div>

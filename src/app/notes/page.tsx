@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 export default async function NotesPage() {
   const { notes } = await listNotesSafe();
   const published = notes.filter((n) => n.status === "PUBLISHED");
+  const tags = Array.from(new Set(published.map((n) => n.tag)));
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
@@ -16,6 +17,19 @@ export default async function NotesPage() {
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">全部碎碎念</h1>
           <p className="mt-3 text-[var(--muted)]">{published.length} 条已发布</p>
         </header>
+
+        {/* 标签筛选 */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {tags.map((tag) => (
+              <a key={tag} href={`?tag=${encodeURIComponent(tag)}`}
+                className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)] hover:text-[var(--fg)]"
+              >
+                {tag}
+              </a>
+            ))}
+          </div>
+        )}
 
         <div className="grid gap-4">
           {published.map((note) => (

@@ -64,8 +64,9 @@ export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(
           <input value={status} onChange={(e) => setStatus(e.target.value)} className="input w-28 text-sm" placeholder="状态" />
           <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} className="input w-20 text-sm" placeholder="排序" />
           <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-[var(--accent)]" /> 启用
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> 启用
           </label>
+          <span className="text-[11px] text-[var(--subtle)] ml-auto">{detail.length} 字 · 约 {Math.max(1, Math.ceil(detail.length / 400))} 分钟阅读</span>
         </div>
       </div>
     </div>

@@ -43,7 +43,7 @@ export async function HomePage() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] backdrop-blur-xl">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
-              个人碎碎念 / MySQL 后端 / 可公开访问
+              一个安静但有光的地方
             </div>
 
             <div className="space-y-5">
@@ -52,7 +52,7 @@ export async function HomePage() {
                 把日常、想法和情绪，放进一个很安静但很有光的地方。
               </h1>
               <p className="max-w-2xl text-base leading-8 text-[var(--muted)] sm:text-lg">
-                这是一个为你个人碎碎念设计的网站：现代、艺术、极简，已经接入 MySQL 数据层，支持公开浏览和后台管理。
+                这里没有算法，没有打扰。只有慢慢生长的文字、灵感和生活碎片。
               </p>
             </div>
 
@@ -85,9 +85,13 @@ export async function HomePage() {
               </div>
               <div className="rounded-3xl bg-[linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-5">
                 <p className="text-sm text-[var(--subtle)]">随机一句</p>
-                <p className="mt-3 text-lg leading-8 text-[var(--fg)]">
-                  {random ? random.text : "还没有内容，先去后台写一条吧。"}
-                </p>
+                {random ? (
+                  <a href={`/notes/${random.id}`} className="block mt-3 text-lg leading-8 text-[var(--fg)] hover:text-[var(--accent)] transition">
+                    {random.text.length > 80 ? random.text.slice(0, 80) + "…" : random.text}
+                  </a>
+                ) : (
+                  <p className="mt-3 text-lg leading-8 text-[var(--muted)]">还没有内容，先去后台写一条吧。</p>
+                )}
               </div>
             </div>
           </div>
@@ -129,7 +133,7 @@ export async function HomePage() {
               <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Latest notes</p>
               <h2 className="mt-2 text-2xl font-semibold">最新碎碎念</h2>
             </div>
-            <p className="hidden text-sm text-[var(--subtle)] md:block">这些内容现在来自 MySQL</p>
+            <p className="hidden text-sm text-[var(--subtle)] md:block">每一条都安静地躺在这里</p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
