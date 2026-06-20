@@ -9,25 +9,24 @@ export default async function GuestbookPage() {
   const entries = await prisma.guestbookEntry.findMany({ where: { status: "PUBLISHED" }, orderBy: { createdAt: "desc" }, take: 20 });
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-2xl px-6 py-16">
-        <header className="mb-12 text-center">
-          <p className="text-xs text-[var(--subtle)] uppercase tracking-widest">Guestbook</p>
-          <h1 className="text-[32px] font-medium mt-2 tracking-tight">留言板</h1>
-          <p className="text-[15px] text-[var(--fg-secondary)] mt-2">路过的人，留下一句话再走吧</p>
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+      <div className="mx-auto max-w-3xl px-6 py-16">
+        <header className="mb-12">
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Guestbook</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight">公开留言板</h1>
+          <p className="mt-3 text-[var(--muted)]">留下一个简短的问候、感想或者路过的脚印。</p>
         </header>
 
         <GuestbookForm />
 
-        <div className="mt-12 space-y-4">
-          {entries.length === 0 && <p className="text-center text-[var(--subtle)] text-sm py-8">还没有留言，来做第一个留下脚印的人</p>}
+        <div className="mt-12 grid gap-4">
           {entries.map((entry) => (
-            <article key={entry.id} className="card-apple p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-medium">{entry.name}</h2>
-                <time className="text-[12px] text-[var(--subtle)]">{new Date(entry.createdAt).toLocaleString("zh-CN")}</time>
+            <article key={entry.id} className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold">{entry.name}</h2>
+                <time className="text-sm text-[var(--subtle)]">{new Date(entry.createdAt).toLocaleString("zh-CN")}</time>
               </div>
-              <p className="text-[14px] text-[var(--fg-secondary)] mt-2 leading-relaxed whitespace-pre-wrap">{entry.message}</p>
+              <p className="mt-4 whitespace-pre-wrap leading-8 text-[var(--muted)]">{entry.message}</p>
             </article>
           ))}
         </div>

@@ -33,7 +33,8 @@ export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(
         body: JSON.stringify({ section, title, detail, meta: meta || undefined, status: status || undefined, order, active }),
       });
       if (!r.ok) { setError("保存失败"); return; }
-      router.push(`/admin/${section.toLowerCase()}`);
+      const routeMap: Record<string, string> = { NOW: "now", WISH: "wish", READING: "reading", INSPIRATION: "inspirations" };
+      router.push(`/admin/${routeMap[section]}`);
       router.refresh();
     });
   };

@@ -23,23 +23,23 @@ export function InspirationsClient({ items }: { items: Item[] }) {
     <div>
       <div className="flex gap-3 mb-8">
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="搜索灵感..."
-          className="flex-1 max-w-sm rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-sm outline-none placeholder:text-[var(--subtle)]" />
+          className="flex-1 max-w-sm rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm outline-none placeholder:text-[var(--subtle)]" />
         <select value={tag} onChange={(e) => setTag(e.target.value)}
-          className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2.5 text-sm text-[var(--fg-secondary)] outline-none">
+          className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)] outline-none">
           <option value="ALL">全部</option>
           {tags.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((item, i) => {
           const key = item.id ?? `${item.title}-${i}`;
           const content = (
-            <div className="card-apple p-5 h-full flex flex-col">
-              <p className="text-[11px] text-[var(--subtle)] uppercase tracking-widest mb-2">{item.meta ?? "灵感"}</p>
-              <h2 className="text-[17px] font-medium">{item.title}</h2>
-              <p className="text-[13px] text-[var(--fg-secondary)] mt-2 leading-relaxed flex-1">{item.detail}</p>
-              {item.pinned && <span className="mt-3 text-[11px] text-[var(--rose)]">置顶</span>}
+            <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta ?? "灵感"}</p>
+              <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
+              <p className="mt-3 leading-8 text-[var(--muted)]">{item.detail}</p>
+              {item.pinned && <span className="inline-block mt-3 rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted)]">置顶</span>}
             </div>
           );
           return item.href ? <Link key={key} href={item.href}>{content}</Link> : <div key={key}>{content}</div>;

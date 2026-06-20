@@ -16,26 +16,26 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
   const next = index < published.length - 1 ? published[index + 1] : null;
 
   return (
-    <main className="min-h-screen animate-in">
-      <article className="mx-auto max-w-2xl px-6 py-16">
-        <Link href="/notes" className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--fg)] transition mb-10">← 碎碎念</Link>
-
-        <div className="flex items-center gap-3 mb-6">
-          <span className="text-[12px] px-2.5 py-0.5 rounded-full border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--muted)]">{note.tag}</span>
-          <time className="text-[12px] text-[var(--subtle)]">{new Date(note.createdAt).toLocaleString("zh-CN")}</time>
-          {note.pinned && <span className="text-[11px] text-[var(--rose)] font-medium">置顶</span>}
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+      <article className="mx-auto max-w-3xl px-6 py-16">
+        <div className="mb-8 flex items-center justify-between text-sm text-[var(--subtle)]">
+          <Link href="/notes" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 transition hover:bg-[var(--card-strong)]">← 返回列表</Link>
+          <div className="flex gap-3">
+            {prev ? <Link href={`/notes/${prev.id}`} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 transition hover:bg-[var(--card-strong)]">上一条</Link> : null}
+            {next ? <Link href={`/notes/${next.id}`} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 transition hover:bg-[var(--card-strong)]">下一条</Link> : null}
+          </div>
         </div>
 
-        <h1 className="text-[36px] font-semibold leading-tight tracking-tight mb-12">{note.title}</h1>
-
-        <div className="text-[17px] leading-[1.9] text-[var(--fg-secondary)] whitespace-pre-wrap">
-          {note.text}
+        <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-8 backdrop-blur-xl">
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">碎碎念</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">{note.title}</h1>
+          <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--muted)]">
+            <span className="rounded-full border border-[var(--border)] px-3 py-1">{note.tag}</span>
+            <span className="rounded-full border border-[var(--border)] px-3 py-1">{new Date(note.createdAt).toLocaleString("zh-CN")}</span>
+            {note.pinned ? <span className="rounded-full border border-amber-300/30 px-3 py-1 text-amber-100">置顶</span> : null}
+          </div>
+          <p className="mt-8 whitespace-pre-wrap leading-8 text-[var(--muted)]">{note.text}</p>
         </div>
-
-        <nav className="flex items-center justify-between mt-20 pt-8 border-t border-[var(--border)]">
-          {prev ? <Link href={`/notes/${prev.id}`} className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition">← {prev.title.slice(0, 16)}</Link> : <span />}
-          {next ? <Link href={`/notes/${next.id}`} className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition text-right">{next.title.slice(0, 16)} →</Link> : <span />}
-        </nav>
       </article>
     </main>
   );

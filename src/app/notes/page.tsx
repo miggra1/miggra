@@ -9,30 +9,25 @@ export default async function NotesPage() {
   const published = notes.filter((n) => n.status === "PUBLISHED");
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-3xl px-6 py-16">
-        <header className="mb-12 animate-in">
-          <p className="text-[11px] uppercase tracking-widest text-[#3b82f6]">Journal</p>
-          <h1 className="text-[36px] font-semibold mt-2 tracking-tight">碎碎念</h1>
-          <p className="text-[var(--fg-secondary)] mt-2 text-sm">{published.length} 条公开记录，按时间排列</p>
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+      <div className="mx-auto max-w-4xl px-6 py-16">
+        <header className="mb-12">
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">碎碎念</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight">全部碎碎念</h1>
+          <p className="mt-3 text-[var(--muted)]">{published.length} 条已发布</p>
         </header>
 
-        <div className="space-y-0.5">
-          {published.length === 0 && (
-            <div className="text-center py-20 surface rounded-xl">
-              <p className="text-4xl mb-3">📖</p>
-              <p className="text-[var(--muted)] text-sm">还没有公开的碎碎念</p>
-            </div>
-          )}
-          {published.map((note, i) => (
+        <div className="grid gap-4">
+          {published.map((note) => (
             <Link key={note.id} href={`/notes/${note.id}`}
-              className="flex items-center gap-4 px-4 py-3.5 surface-hover rounded-lg animate-in"
-              style={{ animationDelay: `${i * 40}ms` }}
+              className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-0.5 hover:bg-[var(--card-strong)]"
             >
-              <span className="h-2 w-2 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: note.pinned ? "var(--rose)" : "var(--subtle)" }} />
-              <span className="text-[12px] text-[var(--muted)] w-16 shrink-0">{note.tag}</span>
-              <span className="flex-1 text-[15px] font-medium truncate">{note.title}</span>
-              <time className="text-[12px] text-[var(--subtle)] tabular-nums">{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
+              <div className="flex items-center justify-between gap-4 text-sm text-[var(--subtle)]">
+                <span className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)]">{note.tag}</span>
+                <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
+              </div>
+              <h2 className="mt-4 text-xl font-semibold">{note.title}</h2>
+              <p className="mt-3 line-clamp-2 leading-7 text-[var(--muted)]">{note.text}</p>
             </Link>
           ))}
         </div>
