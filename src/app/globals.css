@@ -1,43 +1,33 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
-/* ── 暗色模式（暖黑茶调）── */
 :root {
   color-scheme: dark;
-  --bg: #0d0b09;
-  --bg-soft: #12100e;
-  --fg: #e8e4dd;
-  --muted: rgba(232, 228, 221, 0.62);
-  --subtle: rgba(232, 228, 221, 0.38);
-  --card: rgba(232, 228, 221, 0.04);
-  --card-strong: rgba(232, 228, 221, 0.07);
-  --border: rgba(232, 228, 221, 0.09);
-  --accent: #d4a574;
-  --accent-fg: #0d0b09;
-  --accent-glow: rgba(212, 165, 116, 0.18);
-  --shadow: rgba(0, 0, 0, 0.5);
-  --font-serif: "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", "Songti SC", serif;
+  --bg: #07070a;
+  --fg: #ffffff;
+  --muted: rgba(255, 255, 255, 0.7);
+  --subtle: rgba(255, 255, 255, 0.45);
+  --card: rgba(255, 255, 255, 0.05);
+  --card-strong: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #ffffff;
+  --accent-fg: #07070a;
+  --shadow: rgba(0, 0, 0, 0.4);
 }
 
-/* ── 浅色模式（奶油纸调）── */
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #faf7f2;
-  --bg-soft: #f5f0e8;
-  --fg: #2d221b;
-  --muted: rgba(45, 34, 27, 0.65);
-  --subtle: rgba(45, 34, 27, 0.38);
-  --card: rgba(45, 34, 27, 0.035);
-  --card-strong: rgba(45, 34, 27, 0.06);
-  --border: rgba(45, 34, 27, 0.1);
-  --accent: #b8763b;
-  --accent-fg: #faf7f2;
-  --accent-glow: rgba(184, 118, 59, 0.15);
-  --shadow: rgba(45, 34, 27, 0.06);
-  --font-serif: "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", "Songti SC", serif;
+  --bg: #f6f7fb;
+  --fg: #12131a;
+  --muted: rgba(18, 19, 26, 0.72);
+  --subtle: rgba(18, 19, 26, 0.45);
+  --card: rgba(18, 19, 26, 0.04);
+  --card-strong: rgba(18, 19, 26, 0.07);
+  --border: rgba(18, 19, 26, 0.12);
+  --accent: #12131a;
+  --accent-fg: #f6f7fb;
+  --shadow: rgba(18, 19, 26, 0.08);
 }
 
-/* ── 全局基础 ── */
 * {
   box-sizing: border-box;
 }
@@ -51,111 +41,14 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  letter-spacing: 0.01em;
-  line-height: 1.7;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ── 衬线字体用于标题 ── */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-/* ── 噪点纹理 ── */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-}
-
-/* ── 链接 ── */
 a {
   color: inherit;
   text-decoration: none;
 }
 
-/* ── 选中 ── */
 ::selection {
-  background: var(--accent-glow);
-  color: var(--fg);
-}
-
-/* ── 滚动条 ── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--subtle);
-}
-
-/* ── 卡片通用动画 ── */
-.card-hover {
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-}
-.card-hover:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-glow);
-  box-shadow: 0 0 40px var(--accent-glow), inset 0 0 40px var(--accent-glow);
-}
-
-/* ── 淡入动画 ── */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-up {
-  animation: fadeUp 0.6s ease both;
-}
-
-/* ── 脉冲（时间轴圆点）── */
-@keyframes pulseDot {
-  0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
-  50% { box-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow); }
-}
-.dot-pulse {
-  animation: pulseDot 3s ease-in-out infinite;
-}
-
-/* ── 顶部光晕（光标跟随）── */
-.cursor-glow {
-  position: fixed;
-  pointer-events: none;
-  z-index: 9998;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  opacity: 0.35;
-  transition: opacity 0.4s ease;
-}
-
-/* ── 导航栏渐隐 ── */
-.top-bar-transparent {
-  background: transparent !important;
-  border-bottom-color: transparent !important;
-  backdrop-filter: none !important;
+  background: color-mix(in srgb, var(--fg) 18%, transparent);
 }
