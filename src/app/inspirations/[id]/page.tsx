@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ContentDetailShell } from "../../components/content-detail-shell";
 import { DetailNav } from "../../components/detail-nav";
 import { RelatedItems } from "../../components/related-items";
 import { prisma } from "@/lib/prisma";
@@ -24,18 +23,29 @@ export default async function InspirationsDetailPage({ params }: { params: Promi
   const index = items.findIndex((entry) => entry.id === item.id);
   const prevHref = index > 0 ? `/inspirations/${items[index - 1]?.id}` : undefined;
   const nextHref = index >= 0 && index < items.length - 1 ? `/inspirations/${items[index + 1]?.id}` : undefined;
-  const related = items
-    .filter((entry) => entry.id !== item.id)
-    .slice(0, 3)
-    .map((entry) => ({ href: `/inspirations/${entry.id}`, title: entry.title, note: entry.meta ?? "Idea" }));
+  const related = items.filter((entry) => entry.id !== item.id).slice(0, 3).map((entry) => ({ href: `/inspirations/${entry.id}`, title: entry.title, note: entry.meta ?? "Idea" }));
 
   return (
-    <ContentDetailShell eyebrow="Inspiration" title={item.title} meta={item.meta ?? "Idea"} backHref="/inspirations" backLabel="返回灵感" listHref="/notes" listLabel="碎碎念">
-      <DetailNav prevHref={prevHref} nextHref={nextHref} />
-      <section className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 leading-8 text-[var(--muted)]">
-        {item.detail}
-      </section>
-      <RelatedItems title="更多灵感" items={related} />
-    </ContentDetailShell>
+    <main className="relative min-h-screen overflow-hidden bg-[#c4a87c] text-[#3d3027]">
+      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,90,43,0.1) 2px, rgba(139,90,43,0.1) 3px)" }} />
+      <div className="relative mx-auto max-w-3xl px-6 py-12">
+        <a href="/inspirations" className="font-mono text-xs text-amber-900/60 hover:text-amber-800 transition">← 回到软木板</a>
+        <DetailNav prevHref={prevHref} nextHref={nextHref} />
+
+        <article className="mt-6 -rotate-[0.3deg] rounded-md border-2 border-amber-400/40 bg-yellow-100 p-8 shadow-xl">
+          <div className="flex justify-center">
+            <div className="-mt-12 mb-4 h-5 w-5 rounded-full bg-gradient-to-b from-red-400 to-red-600 shadow-md ring-1 ring-red-300" />
+          </div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-600/70">{item.meta ?? "Idea"}</p>
+          <h1 className="mt-2 font-serif text-2xl font-semibold text-amber-950">{item.title}</h1>
+          <div className="mt-6 font-mono text-sm leading-7 text-amber-800/70 whitespace-pre-wrap">{item.detail}</div>
+          {item.status ? (
+            <div className="mt-5 inline-flex rounded-full border border-amber-400/30 bg-amber-50 px-3 py-1 font-mono text-xs text-amber-600">{item.status}</div>
+          ) : null}
+        </article>
+
+        <RelatedItems title="更多灵感" items={related} />
+      </div>
+    </main>
   );
 }

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { FeaturePageShell } from "../components/feature-page-shell";
 import { fallbackInspirations } from "@/lib/site-data";
 import { listContentItemsSafe } from "@/lib/content";
-import { DbErrorBanner } from "../components/db-error-banner";
 import { InspirationsClient } from "./inspirations-client";
+import { DbErrorBanner } from "../components/db-error-banner";
 
 export const revalidate = 60;
 export const runtime = "nodejs";
@@ -31,9 +30,24 @@ export default async function InspirationsPage() {
       }));
 
   return (
-    <FeaturePageShell eyebrow="Inspiration" title="灵感墙" description="把脑子里突然冒出来的想法先放进来，之后再慢慢整理。">
-      {dbError ? <DbErrorBanner /> : null}
-      <InspirationsClient items={source} />
-    </FeaturePageShell>
+    /* ── 软木板风：暖棕软木纹理 + 彩色便利贴 ── */
+    <main className="relative min-h-screen overflow-hidden bg-[#c4a87c] text-[#3d3027]">
+      {/* 软木板纹理 */}
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,90,43,0.1) 2px, rgba(139,90,43,0.1) 3px), repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(139,90,43,0.06) 4px, rgba(139,90,43,0.06) 5px)" }} />
+      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(ellipse at 30% 40%, rgba(139,90,43,0.5) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(139,90,43,0.4) 0%, transparent 50%)" }} />
+
+      <div className="relative mx-auto max-w-6xl px-6 py-12">
+        {dbError ? <DbErrorBanner /> : null}
+
+        {/* 软木板标题标签 */}
+        <header className="mb-8 inline-block -rotate-1 rounded-lg border-2 border-amber-700/30 bg-yellow-100/90 px-8 py-4 shadow-lg">
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-amber-700">Corkboard</p>
+          <h1 className="font-serif text-3xl font-medium italic text-amber-900">灵感便签墙</h1>
+          <p className="mt-1 font-mono text-xs text-amber-600">📌 想到什么，随手钉上来</p>
+        </header>
+
+        <InspirationsClient items={source} />
+      </div>
+    </main>
   );
 }
