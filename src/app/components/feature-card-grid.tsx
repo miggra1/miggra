@@ -8,6 +8,7 @@ export type FeatureCardItem = {
   meta?: string;
   leading?: ReactNode;
   href?: string;
+  id?: string;
 };
 
 type FeatureCardGridProps = {
@@ -18,10 +19,10 @@ type FeatureCardGridProps = {
 export function FeatureCardGrid({ items, columns = 3 }: FeatureCardGridProps) {
   return (
     <section className={columns === 2 ? "grid gap-4 md:grid-cols-2" : "grid gap-4 md:grid-cols-2 xl:grid-cols-3"}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const content = (
-          <article className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
-            {item.meta ? <div className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta}</div> : null}
+          <article className="card-hover rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
+            {item.meta ? <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta}</div> : null}
             <div className="mt-3 flex items-start justify-between gap-4">
               <h2 className="text-xl font-medium">{item.title}</h2>
               {item.status ? <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">{item.status}</span> : null}
@@ -30,7 +31,7 @@ export function FeatureCardGrid({ items, columns = 3 }: FeatureCardGridProps) {
           </article>
         );
 
-        const key = (item as any).id ?? item.href ?? `${item.title}-${items.indexOf(item)}`;
+        const key = item.id ?? item.href ?? `${item.title}-${index}`;
 
         return item.href ? (
           <Link key={key} href={item.href} className="block cursor-pointer">
