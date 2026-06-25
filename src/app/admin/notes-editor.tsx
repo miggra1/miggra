@@ -69,7 +69,7 @@ export function NotesEditor({ mode, initial }: Props) {
         <MarkdownEditor
           value={text}
           onChange={setText}
-          placeholder="写点什么...（支持 Markdown 语法）"
+          placeholder="写点什么..."
           rows={20}
         />
 

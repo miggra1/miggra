@@ -82,7 +82,7 @@ export function PagesEditor({ mode, initial }: Props) {
         <MarkdownEditor
           value={content}
           onChange={setContent}
-          placeholder="页面内容...（支持 Markdown 语法）"
+          placeholder="页面内容..."
           rows={20}
         />
 

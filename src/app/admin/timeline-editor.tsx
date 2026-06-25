@@ -58,7 +58,7 @@ export function TimelineEditor({ mode, initial }: Props) {
         <MarkdownEditor
           value={detail}
           onChange={setDetail}
-          placeholder="详细描述...（支持 Markdown 语法）"
+          placeholder="详细描述..."
           rows={14}
         />
 

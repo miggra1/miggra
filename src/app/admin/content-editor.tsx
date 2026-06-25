@@ -59,7 +59,7 @@ export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(
         <MarkdownEditor
           value={detail}
           onChange={setDetail}
-          placeholder="内容...（支持 Markdown 语法）"
+          placeholder="内容..."
           rows={16}
         />
 
