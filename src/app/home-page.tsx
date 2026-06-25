@@ -13,6 +13,7 @@ const fallbackFeatureCards = [
   { href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。", count: "3" },
   { href: "/timeline", label: "Timeline", title: "人生节点", description: "看见这个站是怎么长出来的。", count: "3" },
   { href: "/guestbook", label: "Guestbook", title: "公开留言板", description: "留下一个简短的脚印。", count: "1" },
+  { href: "/photos", label: "Photos", title: "照片墙", description: "安静地收藏好看的瞬间。", count: "6" },
 ];
 
 export async function HomePage() {
