@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listContentItemsSafe } from "@/lib/content";
 import { fallbackReadingList } from "@/lib/site-data";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "书单", description: "在读、读过、想读的书" };
@@ -30,7 +31,9 @@ export default async function ReadingPage() {
                   <h2 className="text-xl font-semibold">{item.title}</h2>
                   {item.status && <span className={`rounded-full border border-[var(--border)] px-3 py-1 text-sm ${statusColors[item.status] ?? "text-[var(--muted)]"}`}>{item.status}</span>}
                 </div>
-                <p className="mt-3 leading-8 text-[var(--muted)]">{item.detail}</p>
+                <div className="mt-3 line-clamp-3">
+                <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+              </div>
               </div>
             );
             return item.href ? <Link key={item.href} href={item.href}>{content}</Link> : <div key={`${item.title}-${i}`}>{content}</div>;

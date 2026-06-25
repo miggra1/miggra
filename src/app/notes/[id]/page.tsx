@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPublishedNoteSafe, listNotesSafe } from "@/lib/notes";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const revalidate = 60; export const runtime = "nodejs";
 
@@ -34,7 +35,14 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
             <span className="rounded-full border border-[var(--border)] px-3 py-1">{new Date(note.createdAt).toLocaleString("zh-CN")}</span>
             {note.pinned ? <span className="rounded-full border border-amber-300/30 px-3 py-1 text-amber-100">置顶</span> : null}
           </div>
-          <p className="mt-8 whitespace-pre-wrap leading-8 text-[var(--muted)]">{note.text}</p>
+          {note.coverImage && (
+            <div className="mt-6 overflow-hidden rounded-2xl">
+              <img src={note.coverImage} alt="" className="w-full object-cover max-h-96" />
+            </div>
+          )}
+          <div className="mt-8">
+            <MarkdownRenderer>{note.text}</MarkdownRenderer>
+          </div>
         </div>
       </article>
     </main>

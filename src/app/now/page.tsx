@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listContentItemsSafe } from "@/lib/content";
 import { fallbackNowItems } from "@/lib/site-data";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const revalidate = 60; export const runtime = "nodejs";
 export const metadata: Metadata = { title: "Now", description: "此刻在做什么" };
@@ -27,7 +28,9 @@ export default async function NowPage() {
               <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
                 <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta}</p>
                 <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
-                <p className="mt-3 leading-8 text-[var(--muted)]">{item.detail}</p>
+                <div className="mt-3 line-clamp-3">
+                <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+              </div>
               </div>
             );
             return item.href ? <Link key={item.href} href={item.href}>{content}</Link> : <div key={`${item.title}-${i}`}>{content}</div>;

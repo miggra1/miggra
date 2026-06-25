@@ -112,7 +112,7 @@ export function NotesWorkspace({ initialNotes }: { initialNotes: Note[] }) {
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-600">{editing?.id ? "编辑" : creating ? "新建" : "← 选一条开始写"}</p>
         <div className="mt-4 space-y-4">
           <input value={editing?.title ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm()), title: e.target.value }))} placeholder="标题" className="w-full bg-transparent border-b border-white/[0.06] pb-2 font-serif text-lg outline-none placeholder:text-zinc-800" />
-          <textarea value={editing?.text ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm()), text: e.target.value }))} placeholder="写下你想说的..." rows={12} className="w-full bg-transparent font-mono text-sm leading-7 text-zinc-300 outline-none placeholder:text-zinc-800 resize-none" />
+          <textarea value={editing?.text ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm()), text: e.target.value }))} placeholder="写下你想说的...（支持 Markdown）" rows={12} className="w-full bg-transparent font-mono text-sm leading-7 text-zinc-300 outline-none placeholder:text-zinc-800 resize-none" />
           <div className="flex gap-3">
             <input value={editing?.tag ?? "随想"} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm()), tag: e.target.value }))} placeholder="标签" className="w-28 rounded-lg border border-white/[0.06] bg-transparent px-3 py-1.5 font-mono text-xs outline-none" />
             <select value={editing?.status ?? "PUBLISHED"} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm()), status: e.target.value as NoteStatus }))} className="rounded-lg border border-white/[0.06] bg-transparent px-3 py-1.5 font-mono text-xs outline-none">

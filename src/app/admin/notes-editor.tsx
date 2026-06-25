@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { NoteStatus } from "@prisma/client";
+import { MarkdownEditor } from "@/app/components/markdown-editor";
 
 type Props = {
   mode: "new" | "edit";
-  initial?: { id: string; title: string; text: string; tag: string; status: NoteStatus; pinned: boolean };
+  initial?: { id: string; title: string; text: string; tag: string; status: NoteStatus; pinned: boolean; coverImage?: string | null; scheduledAt?: string | null };
 };
 
 export function NotesEditor({ mode, initial }: Props) {
@@ -16,6 +17,8 @@ export function NotesEditor({ mode, initial }: Props) {
   const [tag, setTag] = useState(initial?.tag ?? "随想");
   const [status, setStatus] = useState<NoteStatus>(initial?.status ?? "PUBLISHED");
   const [pinned, setPinned] = useState(initial?.pinned ?? false);
+  const [coverImage, setCoverImage] = useState(initial?.coverImage ?? "");
+  const [scheduledAt, setScheduledAt] = useState(initial?.scheduledAt ? initial.scheduledAt.slice(0, 16) : "");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
@@ -25,7 +28,7 @@ export function NotesEditor({ mode, initial }: Props) {
       const r = await fetch(mode === "edit" ? `/api/notes/${initial!.id}` : "/api/notes", {
         method: mode === "edit" ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text, tag, status, pinned }),
+        body: JSON.stringify({ title, text, tag, status, pinned, coverImage: coverImage || undefined, scheduledAt: scheduledAt || undefined }),
       });
       if (!r.ok) { setError("保存失败"); return; }
       router.push("/admin/notes"); router.refresh();
@@ -57,11 +60,17 @@ export function NotesEditor({ mode, initial }: Props) {
           className="w-full text-4xl font-semibold bg-transparent border-none outline-none placeholder:text-[var(--subtle)] tracking-tight"
         />
 
-        <textarea
-          value={text} onChange={(e) => setText(e.target.value)}
-          placeholder="写点什么..."
+        <input
+          value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
+          placeholder="封面图 URL（可选，支持粘贴上传链接）"
+          className="w-full text-sm bg-transparent border-b border-[var(--border)] pb-2 outline-none placeholder:text-[var(--subtle)] text-[var(--muted)] focus:border-[var(--accent)] transition"
+        />
+
+        <MarkdownEditor
+          value={text}
+          onChange={setText}
+          placeholder="写点什么...（支持 Markdown 语法）"
           rows={20}
-          className="w-full text-[16px] leading-[1.8] bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]"
         />
 
         {/* Meta bar */}
@@ -71,8 +80,17 @@ export function NotesEditor({ mode, initial }: Props) {
           <select value={status} onChange={(e) => setStatus(e.target.value as NoteStatus)}
             className="input text-sm">
             <option value="PUBLISHED">发布</option>
+            <option value="SCHEDULED">定时发布</option>
             <option value="DRAFT">草稿</option>
           </select>
+          {status === "SCHEDULED" && (
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="input text-sm"
+            />
+          )}
           <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer select-none">
             <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="accent-[var(--accent)]" />
             置顶

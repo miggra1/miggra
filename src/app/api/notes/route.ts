@@ -24,12 +24,19 @@ export async function POST(request: Request) {
   const text = body.text.trim();
   const tag = typeof body.tag === "string" ? body.tag : undefined;
   const pinned = Boolean(body.pinned);
-  const status = body.status === "DRAFT" ? "DRAFT" : "PUBLISHED";
+  const status: "DRAFT" | "PUBLISHED" | "SCHEDULED" = body.status === "DRAFT" ? "DRAFT" : body.status === "SCHEDULED" ? "SCHEDULED" : "PUBLISHED";
+  const coverImage = typeof body.coverImage === "string" ? body.coverImage : undefined;
+  const scheduledAt = typeof body.scheduledAt === "string" ? body.scheduledAt : undefined;
 
   if (!title || !text) {
     return NextResponse.json({ error: "标题和内容不能为空。" }, { status: 400 });
   }
 
-  const note = await createNote({ title, text, tag, pinned, status });
+  // 定时发布必须指定时间
+  if (status === "SCHEDULED" && !scheduledAt) {
+    return NextResponse.json({ error: "定时发布需要指定发布时间。" }, { status: 400 });
+  }
+
+  const note = await createNote({ title, text, tag, pinned, status, coverImage, scheduledAt });
   return NextResponse.json({ note }, { status: 201 });
 }

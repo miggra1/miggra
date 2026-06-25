@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const runtime = "nodejs"; export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -23,7 +24,9 @@ export default async function WishDetailPage({ params }: { params: Promise<{ id:
           <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Wish list</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{item.title}</h1>
           {item.status && <p className="mt-3 text-sm text-[var(--muted)]">{item.status}</p>}
-          <p className="mt-8 whitespace-pre-wrap leading-8 text-[var(--muted)]">{item.detail}</p>
+          <div className="mt-8">
+            <MarkdownRenderer>{item.detail}</MarkdownRenderer>
+          </div>
         </div>
       </article>
     </main>

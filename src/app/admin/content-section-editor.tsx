@@ -93,7 +93,7 @@ export function ContentSectionEditor({ section, initialItems }: { section: Conte
       <aside className="lg:sticky lg:top-8 h-fit rounded-2xl border border-white/[0.05] bg-white/[0.015] p-6 space-y-4">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-600">{editing?.id ? "编辑条目" : "新建条目"}</p>
         <input value={editing?.title ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm(section)), title: e.target.value }))} placeholder="标题" className="w-full bg-transparent border-b border-white/[0.06] pb-2 font-serif text-lg outline-none" />
-        <textarea value={editing?.detail ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm(section)), detail: e.target.value }))} placeholder="内容" rows={8} className="w-full bg-transparent font-mono text-sm leading-7 text-zinc-300 outline-none resize-none" />
+        <textarea value={editing?.detail ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm(section)), detail: e.target.value }))} placeholder="内容（支持 Markdown）" rows={8} className="w-full bg-transparent font-mono text-sm leading-7 text-zinc-300 outline-none resize-none" />
         <div className="grid grid-cols-2 gap-3">
           <input value={editing?.meta ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm(section)), meta: e.target.value }))} placeholder="副标题" className="rounded-lg border border-white/[0.06] bg-transparent px-3 py-2 font-mono text-xs outline-none" />
           <input value={editing?.status ?? ""} onChange={(e) => setEditing((p) => ({ ...(p ?? emptyForm(section)), status: e.target.value }))} placeholder="状态" className="rounded-lg border border-white/[0.06] bg-transparent px-3 py-2 font-mono text-xs outline-none" />

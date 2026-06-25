@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { MarkdownEditor } from "@/app/components/markdown-editor";
 
 type ContentSection = "NOW" | "WISH" | "READING" | "INSPIRATION";
 
@@ -55,9 +56,12 @@ export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" autoFocus
           className="w-full text-4xl font-semibold bg-transparent border-none outline-none placeholder:text-[var(--subtle)] tracking-tight" />
 
-        <textarea value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="内容..."
+        <MarkdownEditor
+          value={detail}
+          onChange={setDetail}
+          placeholder="内容...（支持 Markdown 语法）"
           rows={16}
-          className="w-full text-[16px] leading-[1.8] bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]" />
+        />
 
         <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
           <input value={meta} onChange={(e) => setMeta(e.target.value)} className="input w-32 text-sm" placeholder="副标题" />

@@ -20,8 +20,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     title: body.title,
     text: body.text,
     tag: typeof body.tag === "string" ? body.tag : undefined,
-    status: body.status === "DRAFT" ? "DRAFT" : "PUBLISHED",
+    status: body.status === "DRAFT" ? "DRAFT" : body.status === "SCHEDULED" ? "SCHEDULED" : "PUBLISHED",
     pinned: Boolean(body.pinned),
+    coverImage: typeof body.coverImage === "string" ? body.coverImage : undefined,
+    scheduledAt: typeof body.scheduledAt === "string" ? body.scheduledAt : undefined,
   });
 
   if (!note) {

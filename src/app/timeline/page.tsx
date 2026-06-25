@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { listTimelineMilestonesSafe } from "@/lib/timeline";
 import { fallbackTimeline } from "@/lib/site-data";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const revalidate = 60; export const runtime = "nodejs";
 export const metadata: Metadata = { title: "时间线", description: "这个站是怎么长出来的" };
@@ -30,7 +31,9 @@ export default async function TimelinePage() {
                       <span className="absolute -left-[1.7rem] top-7 h-3 w-3 rounded-full bg-[var(--fg)] shadow-[0_0_12px_rgba(255,255,255,0.3)]" />
                       <div className="text-sm uppercase tracking-[0.2em] text-[var(--subtle)]">{item.year}</div>
                       <h2 className="mt-2 text-xl font-semibold">{item.title}</h2>
-                      <p className="mt-3 leading-8 text-[var(--muted)]">{item.detail}</p>
+                      <div className="mt-3 line-clamp-3">
+                    <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+                  </div>
                     </article>
                   ))}
                 </div>

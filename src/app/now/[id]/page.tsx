@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const runtime = "nodejs"; export const revalidate = 60;
 
@@ -24,7 +25,9 @@ export default async function NowDetailPage({ params }: { params: Promise<{ id: 
         <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-8 backdrop-blur-xl">
           <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">{item.meta ?? "Current"}</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{item.title}</h1>
-          <p className="mt-8 whitespace-pre-wrap leading-8 text-[var(--muted)]">{item.detail}</p>
+          <div className="mt-8">
+            <MarkdownRenderer>{item.detail}</MarkdownRenderer>
+          </div>
         </div>
       </article>
     </main>

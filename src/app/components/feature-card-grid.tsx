@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export type FeatureCardItem = {
   title: string;
@@ -26,7 +27,9 @@ export function FeatureCardGrid({ items, columns = 3 }: FeatureCardGridProps) {
               <h2 className="text-xl font-medium">{item.title}</h2>
               {item.status ? <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">{item.status}</span> : null}
             </div>
-            <p className="mt-4 leading-8 text-[var(--muted)]">{item.detail}</p>
+            <div className="mt-4 line-clamp-3">
+              <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+            </div>
           </article>
         );
 

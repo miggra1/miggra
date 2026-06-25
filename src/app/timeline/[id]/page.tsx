@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const runtime = "nodejs"; export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -23,7 +24,9 @@ export default async function TimelineDetailPage({ params }: { params: Promise<{
           <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">{item.kind === "PERSONAL" ? "人生节点" : "站点节点"}</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{item.title}</h1>
           <p className="mt-3 text-sm text-[var(--muted)]">{item.year} · {item.kind === "PERSONAL" ? "个人经历" : "站点变化"}</p>
-          <p className="mt-8 whitespace-pre-wrap leading-8 text-[var(--muted)]">{item.detail}</p>
+          <div className="mt-8">
+            <MarkdownRenderer>{item.detail}</MarkdownRenderer>
+          </div>
         </div>
       </article>
     </main>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 type Item = { title: string; detail: string; meta?: string; status?: string; href?: string; pinned?: boolean; id?: string; };
 
@@ -38,7 +39,9 @@ export function InspirationsClient({ items }: { items: Item[] }) {
             <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta ?? "灵感"}</p>
               <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
-              <p className="mt-3 leading-8 text-[var(--muted)]">{item.detail}</p>
+              <div className="mt-3 line-clamp-3">
+              <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+            </div>
               {item.pinned && <span className="inline-block mt-3 rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted)]">置顶</span>}
             </div>
           );

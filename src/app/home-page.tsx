@@ -4,6 +4,7 @@ import { DbErrorBanner } from "./components/db-error-banner";
 import { StatsPanel } from "./components/stats-panel";
 import { FeatureHub } from "./components/feature-hub";
 import { getHomepageModulesSafe } from "@/lib/homepage";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 const fallbackFeatureCards = [
   { href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。", count: "3" },
@@ -121,8 +122,15 @@ export async function HomePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-amber-100/70">Pinned</p>
             <h2 className="mt-2 text-2xl font-semibold">置顶精选</h2>
             <a href={`/notes/${pinned.id}`} className="mt-4 block rounded-2xl border border-amber-300/20 bg-black/15 p-5 transition hover:bg-black/25">
+              {pinned.coverImage && (
+                <div className="mb-4 -mx-1 -mt-1 overflow-hidden rounded-xl">
+                  <img src={pinned.coverImage} alt="" className="w-full h-40 object-cover" />
+                </div>
+              )}
               <h3 className="text-xl font-medium">{pinned.title}</h3>
-              <p className="mt-3 line-clamp-3 text-white/70">{pinned.text}</p>
+              <div className="mt-3 line-clamp-3 text-white/70">
+                <MarkdownRenderer preview>{pinned.text}</MarkdownRenderer>
+              </div>
             </a>
           </section>
         ) : null}
@@ -139,12 +147,19 @@ export async function HomePage() {
           <div className="grid gap-4 lg:grid-cols-3">
             {latest.map((note) => (
               <a key={note.id} href={`/notes/${note.id}`} className="group rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-1 hover:bg-[var(--card-strong)]">
+                {note.coverImage && (
+                  <div className="mb-4 -mx-2 -mt-2 overflow-hidden rounded-2xl">
+                    <img src={note.coverImage} alt="" className="w-full h-36 object-cover" />
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-3 text-xs text-[var(--subtle)]">
                   <span className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)]">{note.tag}</span>
                   <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
                 </div>
                 <h3 className="mt-5 text-xl font-medium">{note.title}</h3>
-                <p className="mt-4 line-clamp-4 leading-7 text-[var(--muted)]">{note.text}</p>
+                <div className="mt-4 line-clamp-4">
+                  <MarkdownRenderer preview>{note.text}</MarkdownRenderer>
+                </div>
               </a>
             ))}
           </div>

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { MarkdownEditor } from "@/app/components/markdown-editor";
 
 type Props = {
   mode: "new" | "edit";
@@ -54,8 +55,12 @@ export function TimelineEditor({ mode, initial }: Props) {
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" autoFocus
           className="w-full text-3xl font-medium bg-transparent border-none outline-none placeholder:text-[var(--subtle)]" />
 
-        <textarea value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="详细描述..." rows={14}
-          className="w-full text-[15px] leading-relaxed bg-transparent border-none outline-none resize-none placeholder:text-[var(--subtle)]" />
+        <MarkdownEditor
+          value={detail}
+          onChange={setDetail}
+          placeholder="详细描述...（支持 Markdown 语法）"
+          rows={14}
+        />
 
         <div className="flex items-center gap-4 pt-4 border-t border-[var(--border)]">
           <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} className="w-20 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm outline-none" />

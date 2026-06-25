@@ -1,5 +1,6 @@
 import { listNotesSafe } from "@/lib/notes";
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const revalidate = 60;
 export const runtime = "nodejs";
@@ -36,12 +37,19 @@ export default async function NotesPage() {
             <Link key={note.id} href={`/notes/${note.id}`}
               className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-0.5 hover:bg-[var(--card-strong)]"
             >
+              {note.coverImage && (
+                <div className="mb-4 -mx-2 -mt-2 overflow-hidden rounded-2xl">
+                  <img src={note.coverImage} alt="" className="w-full h-44 object-cover" />
+                </div>
+              )}
               <div className="flex items-center justify-between gap-4 text-sm text-[var(--subtle)]">
                 <span className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)]">{note.tag}</span>
                 <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
               </div>
               <h2 className="mt-4 text-xl font-semibold">{note.title}</h2>
-              <p className="mt-3 line-clamp-2 leading-7 text-[var(--muted)]">{note.text}</p>
+              <div className="mt-3 line-clamp-2">
+                <MarkdownRenderer preview>{note.text}</MarkdownRenderer>
+              </div>
             </Link>
           ))}
         </div>

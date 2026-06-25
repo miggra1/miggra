@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listContentItemsSafe } from "@/lib/content";
 import { fallbackWishItems } from "@/lib/site-data";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 export const revalidate = 60; export const runtime = "nodejs";
 export const metadata: Metadata = { title: "愿望清单", description: "想做、想体验的事" };
@@ -26,7 +27,9 @@ export default async function WishPage() {
               <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
                 <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">愿望</p>
                 <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
-                <p className="mt-3 leading-8 text-[var(--muted)]">{item.detail}</p>
+                <div className="mt-3 line-clamp-3">
+                <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+              </div>
                 {item.status && <span className="inline-block mt-4 rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted)]">{item.status}</span>}
               </div>
             );

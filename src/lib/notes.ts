@@ -11,6 +11,8 @@ export type NoteInput = {
   tag?: string;
   status?: NoteStatus;
   pinned?: boolean;
+  coverImage?: string | null;
+  scheduledAt?: string | null;
 };
 
 export async function listNotes() {
@@ -64,6 +66,8 @@ export async function createNote(input: NoteInput) {
       tag: input.tag?.trim() || "随想",
       status: input.status ?? "PUBLISHED",
       pinned: input.pinned ?? false,
+      coverImage: input.coverImage?.trim() || null,
+      scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
     },
   });
 }
@@ -78,6 +82,10 @@ export async function updateNote(id: string, input: NoteInput) {
         tag: input.tag?.trim() || "随想",
         status: input.status,
         pinned: input.pinned,
+        coverImage: input.coverImage?.trim() ?? null,
+        scheduledAt: input.scheduledAt !== undefined
+          ? (input.scheduledAt ? new Date(input.scheduledAt) : null)
+          : undefined,
       },
     });
   } catch {
@@ -92,4 +100,18 @@ export async function deleteNote(id: string) {
   } catch {
     return false;
   }
+}
+
+/** 将到期的定时发布笔记转为已发布，返回更新的数量 */
+export async function transitionScheduledNotes() {
+  const result = await prisma.note.updateMany({
+    where: {
+      status: "SCHEDULED",
+      scheduledAt: { lte: new Date() },
+    },
+    data: {
+      status: "PUBLISHED",
+    },
+  });
+  return result.count;
 }

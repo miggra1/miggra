@@ -16,8 +16,9 @@ export default async function AdminDashboard() {
   const { notes } = await listNotesSafe();
   const stats = computeStatsFromNotes(notes);
 
-  // 最近草稿
-  const recentDrafts = notes.filter((n) => n.status === "DRAFT").slice(0, 3);
+  // 最近草稿 & 定时发布
+  const recentDrafts = notes.filter((n) => n.status === "DRAFT").slice(0, 2);
+  const scheduled = notes.filter((n) => n.status === "SCHEDULED");
   const recentPublished = notes.filter((n) => n.status === "PUBLISHED").slice(0, 4);
   const all = [...recentDrafts, ...recentPublished].slice(0, 6);
 
@@ -84,9 +85,9 @@ export default async function AdminDashboard() {
             <Link key={note.id} href={`/admin/notes/${note.id}`}
               className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--card)] transition hover:bg-[var(--card-strong)]"
             >
-              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: note.status === "PUBLISHED" ? "var(--green)" : "var(--amber)" }} />
+              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: note.status === "PUBLISHED" ? "var(--green)" : note.status === "SCHEDULED" ? "var(--purple)" : "var(--amber)" }} />
               <span className="text-sm font-medium truncate flex-1">{note.title}</span>
-              <span className="text-[11px] text-[var(--muted)]">{note.status === "DRAFT" ? "草稿" : "已发布"}</span>
+              <span className="text-[11px] text-[var(--muted)]">{note.status === "DRAFT" ? "草稿" : note.status === "SCHEDULED" ? "⏳ 定时" : "已发布"}</span>
             </Link>
           ))}
         </div>

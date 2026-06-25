@@ -10,6 +10,7 @@ datasource db {
 enum NoteStatus {
   DRAFT
   PUBLISHED
+  SCHEDULED
 }
 
 enum ContentSection {
@@ -32,17 +33,20 @@ enum TimelineKind {
 }
 
 model Note {
-  id        String     @id @default(cuid())
-  title     String
-  text      String     @db.Text
-  tag       String     @default("随想")
-  status    NoteStatus @default(PUBLISHED)
-  pinned    Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id         String     @id @default(cuid())
+  title      String
+  text       String     @db.Text
+  tag        String     @default("随想")
+  status     NoteStatus @default(PUBLISHED)
+  pinned     Boolean    @default(false)
+  coverImage  String?    // 封面图 URL
+  scheduledAt DateTime?  // 定时发布时间
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@map("notes")
   @@index([status, createdAt])
+  @@index([status, scheduledAt])
 }
 
 model ContentItem {
@@ -99,4 +103,17 @@ model TimelineMilestone {
 
   @@map("timeline_milestones")
   @@index([kind, active, order])
+}
+
+model Page {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  title     String
+  content   String     @db.Text
+  status    NoteStatus @default(DRAFT)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("pages")
+  @@index([slug, status])
 }
