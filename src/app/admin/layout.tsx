@@ -14,6 +14,7 @@ const nav = [
   { href: "/admin/guestbook", label: "留言", color: "#f97316" },
   { href: "/admin/modules", label: "模块", color: "#6b7280" },
   { href: "/admin/pages", label: "页面", color: "#10b981" },
+  { href: "/admin/photos", label: "照片", color: "#a855f7" },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
