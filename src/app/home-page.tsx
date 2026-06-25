@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getHomePageData } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
-import { StatsPanel } from "./components/stats-panel";
 import { FeatureHub } from "./components/feature-hub";
 import { getHomepageModulesSafe } from "@/lib/homepage";
+import { listPhotos } from "@/lib/photos";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 const fallbackFeatureCards = [
@@ -12,13 +12,12 @@ const fallbackFeatureCards = [
   { href: "/reading", label: "Reading", title: "书单", description: "整理正在读和想读的书。", count: "3" },
   { href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。", count: "3" },
   { href: "/timeline", label: "Timeline", title: "人生节点", description: "看见这个站是怎么长出来的。", count: "3" },
-  { href: "/guestbook", label: "Guestbook", title: "公开留言板", description: "留下一个简短的脚印。", count: "1" },
-  { href: "/photos", label: "Photos", title: "照片墙", description: "安静地收藏好看的瞬间。", count: "6" },
 ];
 
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
   const { modules, dbError: modulesDbError } = await getHomepageModulesSafe();
+  const photos = await listPhotos().catch(() => []);
   const published = notes.filter((note) => note.status === "PUBLISHED");
   const latest = published.slice(0, 6);
   const pinned = published.find((note) => note.pinned);
@@ -41,6 +40,7 @@ export async function HomePage() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] opacity-20" />
 
       <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 lg:px-10">
+        {/* ── Hero ── */}
         <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] backdrop-blur-xl">
@@ -65,9 +65,6 @@ export async function HomePage() {
               <Link href="/now" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
                 看看 Now
               </Link>
-              <a href="/admin" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
-                进入后台
-              </a>
             </div>
           </div>
 
@@ -77,8 +74,13 @@ export async function HomePage() {
                 <p className="text-sm text-[var(--subtle)]">当前状态</p>
                 <p className="mt-2 text-2xl font-semibold">在线记录中</p>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {[{ label: "碎念总数", value: `${notes.length}` }, { label: "已发布", value: `${published.length}` }, { label: "标签数", value: `${tags.length}` }].map((item) => (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "碎念总数", value: notes.length },
+                  { label: "已发布", value: published.length },
+                  { label: "草稿", value: stats.draftNotes },
+                  { label: "标签数", value: tags.length },
+                ].map((item) => (
                   <div key={item.label} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
                     <div className="text-2xl font-semibold">{item.value}</div>
                     <div className="mt-1 text-xs text-[var(--subtle)]">{item.label}</div>
@@ -99,25 +101,12 @@ export async function HomePage() {
           </div>
         </div>
 
+        {/* ── 功能入口（5 张卡片）── */}
         <div className="mt-16">
           <FeatureHub items={featureCards} />
         </div>
 
-        <div className="mt-16">
-          <StatsPanel
-            title="站点概览"
-            subtitle="这里展示当前内容状态，后面还能继续扩展成月报和写作统计。"
-            items={[
-              { label: "总碎念数", value: stats.totalNotes },
-              { label: "已发布", value: stats.publishedNotes },
-              { label: "草稿", value: stats.draftNotes },
-              { label: "标签数", value: stats.tagCount },
-            ]}
-            footerHref="/notes"
-            footerLabel="查看归档"
-          />
-        </div>
-
+        {/* ── 置顶精选 ── */}
         {pinned ? (
           <section className="mt-16 rounded-[1.75rem] border border-amber-300/25 bg-amber-300/8 p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-amber-100/70">Pinned</p>
@@ -136,13 +125,14 @@ export async function HomePage() {
           </section>
         ) : null}
 
+        {/* ── 最新碎碎念 ── */}
         <section id="notes" className="mt-16 grid gap-4">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Latest notes</p>
               <h2 className="mt-2 text-2xl font-semibold">最新碎碎念</h2>
             </div>
-            <p className="hidden text-sm text-[var(--subtle)] md:block">每一条都安静地躺在这里</p>
+            <Link href="/notes" className="text-sm text-[var(--subtle)] hover:text-[var(--fg)] transition">查看全部 →</Link>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
@@ -166,6 +156,35 @@ export async function HomePage() {
           </div>
         </section>
 
+        {/* ── 照片墙预览 ── */}
+        {photos.length > 0 && (
+          <section className="mt-16">
+            <div className="flex items-end justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Photos</p>
+                <h2 className="mt-2 text-2xl font-semibold">照片墙</h2>
+              </div>
+              <Link href="/photos" className="text-sm text-[var(--subtle)] hover:text-[var(--fg)] transition">查看全部 →</Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 snap-x snap-mandatory">
+              {photos.slice(0, 6).map((photo) => (
+                <Link
+                  key={photo.id}
+                  href="/photos"
+                  className="shrink-0 w-44 h-44 rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--bg-elevated)] snap-start group cursor-pointer transition hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.caption ?? ""}
+                    className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── About + Tags + Guestbook ── */}
         <section className="mt-16 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">About</p>
@@ -177,6 +196,7 @@ export async function HomePage() {
               <Link href="/reading" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">书单</Link>
               <Link href="/wish" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">愿望清单</Link>
               <Link href="/timeline" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">时间线</Link>
+              <Link href="/guestbook" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">留言</Link>
             </div>
           </div>
           <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
@@ -190,6 +210,12 @@ export async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── 底部 ── */}
+        <footer className="mt-24 pt-8 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--subtle)]">
+          <span>Miggra Journal</span>
+          <Link href="/admin" className="hover:text-[var(--fg)] transition">后台入口</Link>
+        </footer>
       </section>
     </main>
     </>
