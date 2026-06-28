@@ -21,10 +21,26 @@ export function TopBar() {
               {link.label}
             </Link>
           ))}
+          <SearchTrigger />
           <Link href="/admin" className="px-3 py-1.5 text-[13px] text-[var(--subtle)] rounded-md transition hover:text-[var(--fg)]">后台</Link>
           <ThemeToggle />
         </nav>
       </div>
     </header>
+  );
+}
+
+function SearchTrigger() {
+  return (
+    <button
+      onClick={() => window.dispatchEvent(new CustomEvent("miggra:search"))}
+      className="px-3 py-1.5 text-[13px] text-[var(--subtle)] rounded-md transition hover:text-[var(--fg)] hover:bg-[var(--card)] flex items-center gap-1.5"
+      title="搜索 (⌘K)"
+    >
+      <span>搜索</span>
+      <kbd className="text-[10px] text-[var(--subtle)] border border-[var(--border)] rounded px-1.5 py-0.5 font-mono leading-none hidden sm:inline">
+        ⌘K
+      </kbd>
+    </button>
   );
 }

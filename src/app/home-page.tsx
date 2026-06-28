@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getHomePageData } from "@/lib/notes";
+import { getHomePageData, getOnThisDayNotes } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { FeatureHub } from "./components/feature-hub";
 import { getHomepageModulesSafe } from "@/lib/homepage";
@@ -15,10 +15,35 @@ const fallbackFeatureCards = [
   { href: "/photos", label: "Photos", title: "照片墙", description: "用照片记录生活里的光。", count: "0" },
 ];
 
+function daysAgo(date: Date): number {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+function writingStatus(latestNoteAt: Date | null, publishedCount: number): { text: string; tone: "fresh" | "warm" | "quiet" } {
+  if (!latestNoteAt) return { text: "写下第一篇吧。", tone: "quiet" };
+  const days = daysAgo(latestNoteAt);
+  if (days === 0) return { text: "今天写过了 ✨", tone: "fresh" };
+  if (days === 1) return { text: "昨天刚写过，今天还想写吗？", tone: "warm" };
+  if (days <= 3) return { text: `上次写作是 ${days} 天前`, tone: "warm" };
+  if (days <= 7) return { text: `已经 ${days} 天没写了`, tone: "quiet" };
+  if (days <= 30) return { text: `上次写东西是 ${days} 天前了`, tone: "quiet" };
+  return { text: `上一次落笔，已经过去了 ${days} 天`, tone: "quiet" };
+}
+
+function yearLabel(date: Date): string {
+  const yearDiff = new Date().getFullYear() - date.getFullYear();
+  if (yearDiff === 1) return "一年前的今天";
+  if (yearDiff === 2) return "两年前的今天";
+  return `${yearDiff} 年前的今天`;
+}
+
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
   const { modules, dbError: modulesDbError } = await getHomepageModulesSafe();
   const photos = await listPhotos().catch(() => []);
+  const onThisDayNotes = await getOnThisDayNotes().catch(() => []);
   const published = notes.filter((note) => note.status === "PUBLISHED");
   const latest = published.slice(0, 6);
   const pinned = published.find((note) => note.pinned);
@@ -32,6 +57,8 @@ export async function HomePage() {
         : item,
     )
     .filter((item) => !("enabled" in item) || item.enabled !== false);
+
+  const status = writingStatus(stats.latestNoteAt, published.length);
 
   return (
     <>
@@ -60,7 +87,10 @@ export async function HomePage() {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <a href="#notes" className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90">
+              <Link href="/admin/notes/new" className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90">
+                写点东西
+              </Link>
+              <a href="#notes" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
                 查看碎碎念
               </a>
               <Link href="/now" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
@@ -69,25 +99,25 @@ export async function HomePage() {
             </div>
           </div>
 
+          {/* ── Hero 右侧：写作状态 + 随机一句 ── */}
           <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl">
             <div className="space-y-6">
               <div>
                 <p className="text-sm text-[var(--subtle)]">当前状态</p>
-                <p className="mt-2 text-2xl font-semibold">在线记录中</p>
+                <p className={`mt-2 text-2xl font-semibold ${
+                  status.tone === "fresh" ? "text-emerald-400" :
+                  status.tone === "warm" ? "text-[var(--fg)]" :
+                  "text-[var(--muted)]"
+                }`}>
+                  {status.text}
+                </p>
+                {published.length > 0 && (
+                  <p className="mt-1 text-xs text-[var(--subtle)]">
+                    共 {published.length} 篇碎碎念
+                  </p>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "碎念总数", value: notes.length },
-                  { label: "已发布", value: published.length },
-                  { label: "草稿", value: stats.draftNotes },
-                  { label: "标签数", value: tags.length },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
-                    <div className="text-2xl font-semibold">{item.value}</div>
-                    <div className="mt-1 text-xs text-[var(--subtle)]">{item.label}</div>
-                  </div>
-                ))}
-              </div>
+
               <div className="rounded-3xl bg-[linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-5">
                 <p className="text-sm text-[var(--subtle)]">随机一句</p>
                 {random ? (
@@ -95,17 +125,40 @@ export async function HomePage() {
                     {random.text.length > 80 ? random.text.slice(0, 80) + "…" : random.text}
                   </a>
                 ) : (
-                  <p className="mt-3 text-lg leading-8 text-[var(--muted)]">还没有内容，先去后台写一条吧。</p>
+                  <p className="mt-3 text-lg leading-8 text-[var(--muted)]">还没有内容，先写一条吧。</p>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── 功能入口（5 张卡片）── */}
+        {/* ── 功能入口 ── */}
         <div className="mt-16">
           <FeatureHub items={featureCards} />
         </div>
+
+        {/* ── 那年今日 ── */}
+        {onThisDayNotes.length > 0 && (
+          <section className="mt-16 rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
+            <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">On this day</p>
+            <h2 className="mt-2 text-2xl font-semibold mb-4">那年今日</h2>
+            <div className="space-y-3">
+              {onThisDayNotes.slice(0, 3).map((note) => (
+                <Link
+                  key={note.id}
+                  href={`/notes/${note.id}`}
+                  className="block rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 transition hover:bg-[var(--card-strong)]"
+                >
+                  <span className="text-xs text-[var(--accent)]">{yearLabel(new Date(note.createdAt))}</span>
+                  <h3 className="mt-1 text-sm font-medium">{note.title}</h3>
+                  <p className="mt-1 text-xs text-[var(--muted)] line-clamp-2">
+                    {note.text.length > 100 ? note.text.slice(0, 100) + "…" : note.text}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── 置顶精选 ── */}
         {pinned ? (
@@ -145,7 +198,9 @@ export async function HomePage() {
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-3 text-xs text-[var(--subtle)]">
-                  <span className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)]">{note.tag}</span>
+                  <Link href={`/tags/${encodeURIComponent(note.tag)}`} onClick={(e) => e.stopPropagation()} className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)] hover:bg-[var(--card-strong)] hover:text-[var(--fg)] transition">
+                    {note.tag}
+                  </Link>
                   <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
                 </div>
                 <h3 className="mt-5 text-xl font-medium">{note.title}</h3>
@@ -185,7 +240,7 @@ export async function HomePage() {
           </section>
         )}
 
-        {/* ── About + Tags + Guestbook ── */}
+        {/* ── About + 可点击标签 ── */}
         <section className="mt-16 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">About</p>
@@ -204,9 +259,9 @@ export async function HomePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Tags</p>
             <div className="mt-4 flex flex-wrap gap-3">
               {tags.map((tag) => (
-                <span key={tag} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)]">
+                <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)] hover:border-[var(--accent)]">
                   {tag}
-                </span>
+                </Link>
               ))}
             </div>
           </div>

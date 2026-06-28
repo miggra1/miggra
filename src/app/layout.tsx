@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "./theme-provider";
 import { TopBar } from "./components/top-bar";
 import { SiteFooter } from "./components/site-footer";
+import { SearchDialog } from "./components/search-dialog";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="bg-[var(--bg)] text-[var(--fg)]">
         <ThemeProvider>
+          <SearchDialog />
           <TopBar />
           {children}
           <SiteFooter />

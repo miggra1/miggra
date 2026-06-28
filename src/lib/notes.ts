@@ -102,6 +102,31 @@ export async function deleteNote(id: string) {
   }
 }
 
+/** 查询往年今日发布的笔记 */
+export async function getOnThisDayNotes() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+
+  try {
+    // 获取非今年的已发布笔记，在应用层过滤月份和日期
+    const all = await prisma.note.findMany({
+      where: {
+        status: "PUBLISHED",
+        createdAt: { lt: new Date(now.getFullYear(), 0, 1) },
+      },
+      select: { id: true, title: true, text: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return all.filter((n) => {
+      const d = new Date(n.createdAt);
+      return d.getMonth() + 1 === month && d.getDate() === day;
+    });
+  } catch {
+    return [];
+  }
+}
+
 /** 将到期的定时发布笔记转为已发布，返回更新的数量 */
 export async function transitionScheduledNotes() {
   const result = await prisma.note.updateMany({
