@@ -28,6 +28,7 @@ export async function ensureDefaultHomepageModules() {
       { key: "inspirations", title: "灵感墙", enabled: true, order: 4 },
       { key: "timeline", title: "时间线", enabled: true, order: 5 },
       { key: "guestbook", title: "公开留言板", enabled: true, order: 6 },
+      { key: "photos", title: "照片墙", enabled: true, order: 7 },
     ],
   });
 }
