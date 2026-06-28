@@ -36,8 +36,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             </Link>
           ))}
         </nav>
-        <div className="px-5 py-4 border-t border-[var(--border)]">
+        <div className="px-5 py-4 border-t border-[var(--border)] flex items-center justify-between">
           <Link href="/" className="text-xs text-[var(--subtle)] hover:text-[var(--fg)] transition">← 回前台</Link>
+          <form action="/api/auth/logout" method="POST">
+            <button type="submit" className="text-xs text-[var(--subtle)] hover:text-red-400 transition">退出</button>
+          </form>
         </div>
       </aside>
 
