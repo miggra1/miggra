@@ -198,9 +198,9 @@ export async function HomePage() {
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-3 text-xs text-[var(--subtle)]">
-                  <Link href={`/tags/${encodeURIComponent(note.tag)}`} onClick={(e) => e.stopPropagation()} className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)] hover:bg-[var(--card-strong)] hover:text-[var(--fg)] transition">
+                  <span className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--muted)]">
                     {note.tag}
-                  </Link>
+                  </span>
                   <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
                 </div>
                 <h3 className="mt-5 text-xl font-medium">{note.title}</h3>
