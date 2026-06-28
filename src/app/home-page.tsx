@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getHomePageData, getOnThisDayNotes } from "@/lib/notes";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { FeatureHub } from "./components/feature-hub";
+import { WriteButton } from "./components/write-button";
 import { getHomepageModulesSafe } from "@/lib/homepage";
 import { listPhotos } from "@/lib/photos";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
@@ -87,9 +88,7 @@ export async function HomePage() {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <Link href="/admin/notes/new" className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90">
-                写点东西
-              </Link>
+              <WriteButton />
               <a href="#notes" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
                 查看碎碎念
               </a>
