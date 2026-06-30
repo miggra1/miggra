@@ -27,6 +27,12 @@ export default async function GuestbookPage() {
                 <time className="text-sm text-[var(--subtle)]">{new Date(entry.createdAt).toLocaleString("zh-CN")}</time>
               </div>
               <p className="mt-4 whitespace-pre-wrap leading-8 text-[var(--muted)]">{entry.message}</p>
+              {entry.reply ? (
+                <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-5 py-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">站长回复</p>
+                  <p className="mt-2 whitespace-pre-wrap leading-7 text-[var(--fg)]">{entry.reply}</p>
+                </div>
+              ) : null}
             </article>
           ))}
         </div>

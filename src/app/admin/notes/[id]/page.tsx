@@ -9,7 +9,7 @@ export default async function EditNotePage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="px-8 py-10">
-      <NotesEditor mode="edit" initial={{ id: note.id, title: note.title, text: note.text, tag: note.tag, status: note.status, pinned: note.pinned }} />
+      <NotesEditor mode="edit" initial={{ id: note.id, title: note.title, text: note.text, tag: note.tag, status: note.status, pinned: note.pinned, coverImage: note.coverImage, scheduledAt: note.scheduledAt?.toISOString() ?? null }} />
     </div>
   );
 }

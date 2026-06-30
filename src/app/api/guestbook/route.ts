@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
 
   const entry = await prisma.guestbookEntry.create({
-    data: { name, message, status: "PUBLISHED" },
+    data: { name, message, status: "PENDING" },
   });
 
   return NextResponse.json({ entry }, { status: 201 });

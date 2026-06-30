@@ -12,8 +12,8 @@ export function GuestbookForm() {
   const submit = async () => {
     setStatus(null);
     const r = await fetch("/api/guestbook", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, message }) });
-    if (!r.ok) { const d = await r.json().catch(() => null) as any; setStatus(d?.error ?? "提交失败"); return; }
-    setName(""); setMessage(""); setStatus("谢谢你的留言 ✨"); router.refresh();
+    if (!r.ok) { const d = await r.json().catch(() => null) as { error?: string } | null; setStatus(d?.error ?? "提交失败"); return; }
+    setName(""); setMessage(""); setStatus("谢谢你的留言，审核后会展示 ✨"); router.refresh();
   };
 
   return (
@@ -24,7 +24,7 @@ export function GuestbookForm() {
       <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="想说点什么..."
         rows={4} className="w-full rounded-[1.5rem] border border-[var(--border)] bg-transparent px-5 py-3 text-sm outline-none placeholder:text-[var(--subtle)] resize-none mb-3" />
       <div className="flex items-center gap-4">
-        <button onClick={submit} className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:opacity-90">发布留言</button>
+        <button onClick={submit} className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:opacity-90">提交留言</button>
         {status && <p className="text-sm text-[var(--muted)]">{status}</p>}
       </div>
     </div>

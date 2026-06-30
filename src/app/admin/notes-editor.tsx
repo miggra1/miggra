@@ -6,13 +6,20 @@ import type { NoteStatus } from "@prisma/client";
 import { MarkdownEditor } from "@/app/components/markdown-editor";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
-const DRAFT_KEY = "miggra-draft";
+const LEGACY_DRAFT_KEY = "miggra-draft";
+const NEW_DRAFT_KEY = "miggra-draft:new";
+
+type SaveState = "idle" | "saving" | "saved" | "error";
 
 type DraftData = {
+  noteId?: string;
   title: string;
   text: string;
   tag: string;
   status: string;
+  pinned: boolean;
+  coverImage: string;
+  scheduledAt: string;
   savedAt: number;
 };
 
@@ -21,8 +28,17 @@ type Props = {
   initial?: { id: string; title: string; text: string; tag: string; status: NoteStatus; pinned: boolean; coverImage?: string | null; scheduledAt?: string | null };
 };
 
+function formatSavedAt(value: number) {
+  const diff = Date.now() - value;
+  const minutes = Math.max(1, Math.round(diff / 60000));
+  if (minutes < 60) return `${minutes} 分钟前`;
+  return new Date(value).toLocaleString("zh-CN");
+}
+
 export function NotesEditor({ mode, initial }: Props) {
   const router = useRouter();
+  const [noteId, setNoteId] = useState(initial?.id ?? "");
+  const [createdByAutosave, setCreatedByAutosave] = useState(false);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [text, setText] = useState(initial?.text ?? "");
   const [tag, setTag] = useState(initial?.tag ?? "随想");
@@ -35,82 +51,171 @@ export function NotesEditor({ mode, initial }: Props) {
   const [showPreview, setShowPreview] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
   const [draftAvailable, setDraftAvailable] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveSeq = useRef(0);
 
-  // ── 草稿恢复检查（仅 new 模式） ──
+  const draftKey = initial?.id ? `miggra-draft:note:${initial.id}` : NEW_DRAFT_KEY;
+
+  const snapshot = useCallback((): DraftData => ({
+    noteId,
+    title,
+    text,
+    tag,
+    status,
+    pinned,
+    coverImage,
+    scheduledAt,
+    savedAt: Date.now(),
+  }), [coverImage, noteId, pinned, scheduledAt, status, tag, text, title]);
+
+  const markDirty = () => {
+    setDirty(true);
+    setSaveState("idle");
+  };
+
   useEffect(() => {
-    if (mode !== "new") return;
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey) ?? (mode === "new" ? localStorage.getItem(LEGACY_DRAFT_KEY) : null);
       if (!raw) return;
       const draft: DraftData = JSON.parse(raw);
-      if (draft.title || draft.text) {
-        setDraftAvailable(true);
+      if (draft.title || draft.text || draft.coverImage) {
+        window.setTimeout(() => {
+          setDraftSavedAt(draft.savedAt ?? null);
+          setDraftAvailable(true);
+        }, 0);
       }
     } catch { /* ignore */ }
-  }, [mode]);
+  }, [draftKey, mode]);
 
   const restoreDraft = () => {
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey) ?? (mode === "new" ? localStorage.getItem(LEGACY_DRAFT_KEY) : null);
       if (!raw) return;
       const draft: DraftData = JSON.parse(raw);
+      if (draft.noteId) setNoteId(draft.noteId);
       setTitle(draft.title ?? "");
       setText(draft.text ?? "");
       setTag(draft.tag ?? "随想");
       if (draft.status) setStatus(draft.status as NoteStatus);
+      setPinned(Boolean(draft.pinned));
+      setCoverImage(draft.coverImage ?? "");
+      setScheduledAt(draft.scheduledAt ?? "");
       setDraftAvailable(false);
       setDraftRestored(true);
+      setDirty(true);
     } catch { /* ignore */ }
   };
 
   const dismissDraft = () => {
-    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(draftKey);
+    if (mode === "new") localStorage.removeItem(LEGACY_DRAFT_KEY);
     setDraftAvailable(false);
   };
 
-  // ── 自动保存草稿（仅 new 模式） ──
-  const saveDraft = useCallback(() => {
-    if (mode !== "new") return;
-    const draft: DraftData = { title, text, tag, status, savedAt: Date.now() };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  }, [mode, title, text, tag, status]);
+  const saveLocalDraft = useCallback(() => {
+    localStorage.setItem(draftKey, JSON.stringify(snapshot()));
+    if (mode === "new") localStorage.removeItem(LEGACY_DRAFT_KEY);
+  }, [draftKey, mode, snapshot]);
 
   useEffect(() => {
-    if (mode !== "new") return;
-    if (!title && !text) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(saveDraft, 800);
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [title, text, tag, status, mode, saveDraft]);
+    if (!dirty || (!title && !text && !coverImage)) return;
+    if (localSaveTimer.current) clearTimeout(localSaveTimer.current);
+    localSaveTimer.current = setTimeout(saveLocalDraft, 800);
+    return () => { if (localSaveTimer.current) clearTimeout(localSaveTimer.current); };
+  }, [coverImage, dirty, saveLocalDraft, text, title]);
 
-  // 保存成功后清除草稿
+  useEffect(() => {
+    if (!dirty || !text.trim()) return;
+    if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current);
+
+    serverSaveTimer.current = setTimeout(async () => {
+      const seq = ++autosaveSeq.current;
+      setSaveState("saving");
+      const endpoint = noteId ? `/api/notes/${noteId}` : "/api/notes";
+      const method = noteId ? "PATCH" : "POST";
+      const autosaveStatus = createdByAutosave || !noteId ? "DRAFT" : status;
+
+      try {
+        const response = await fetch(endpoint, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            autosave: true,
+            title,
+            text,
+            tag,
+            status: autosaveStatus,
+            pinned,
+            coverImage: coverImage || undefined,
+            scheduledAt: autosaveStatus === "SCHEDULED" ? scheduledAt || undefined : undefined,
+          }),
+        });
+
+        if (!response.ok) throw new Error("autosave failed");
+        const data = (await response.json()) as { note?: { id: string } };
+        if (seq !== autosaveSeq.current) return;
+        if (!noteId && data.note?.id) {
+          setNoteId(data.note.id);
+          setCreatedByAutosave(true);
+        }
+        setSaveState("saved");
+        setLastSavedAt(new Date());
+        setDirty(false);
+        localStorage.removeItem(draftKey);
+      } catch {
+        if (seq !== autosaveSeq.current) return;
+        saveLocalDraft();
+        setSaveState("error");
+      }
+    }, 2200);
+
+    return () => { if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current); };
+  }, [coverImage, createdByAutosave, dirty, draftKey, noteId, pinned, saveLocalDraft, scheduledAt, status, tag, text, title]);
+
   const clearDraft = () => {
-    if (mode === "new") localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(draftKey);
+    if (mode === "new") localStorage.removeItem(LEGACY_DRAFT_KEY);
   };
+
+  const saveButtonText = status === "DRAFT" ? "保存草稿" : status === "SCHEDULED" ? "保存定时" : mode === "new" ? "发布" : "保存并发布";
 
   const save = () => {
     if (!title.trim() || !text.trim()) { setError("标题和内容不能为空"); return; }
+    if (status === "SCHEDULED" && !scheduledAt) { setError("定时发布需要指定发布时间"); return; }
     startTransition(async () => {
-      const r = await fetch(mode === "edit" ? `/api/notes/${initial!.id}` : "/api/notes", {
-        method: mode === "edit" ? "PATCH" : "POST",
+      const endpoint = noteId ? `/api/notes/${noteId}` : "/api/notes";
+      const method = noteId ? "PATCH" : "POST";
+      const r = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, text, tag, status, pinned, coverImage: coverImage || undefined, scheduledAt: scheduledAt || undefined }),
       });
-      if (!r.ok) { setError("保存失败"); return; }
+      if (!r.ok) {
+        const data = (await r.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? "保存失败");
+        return;
+      }
       clearDraft();
+      setDirty(false);
       router.push("/admin/notes"); router.refresh();
     });
   };
 
   return (
     <div className="max-w-4xl mx-auto animate-in px-6 py-10">
-      {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
         <button onClick={() => router.back()} className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition flex items-center gap-1">
           ← 返回列表
         </button>
         <div className="flex items-center gap-3">
+          <span className="text-[11px] text-[var(--subtle)]">
+            {saveState === "saving" ? "正在自动保存…" : saveState === "saved" && lastSavedAt ? `已自动保存 ${lastSavedAt.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}` : saveState === "error" ? "自动保存失败，已保存在本地" : ""}
+          </span>
           <button
             onClick={() => setShowPreview((v) => !v)}
             className={`text-sm px-3 py-1.5 rounded-lg border transition ${
@@ -122,16 +227,15 @@ export function NotesEditor({ mode, initial }: Props) {
             {showPreview ? "隐藏预览" : "分栏预览"}
           </button>
           <button onClick={() => router.back()} className="btn text-sm">取消</button>
-          <button onClick={save} disabled={isPending} className="btn btn-primary text-sm">{mode === "new" ? "发布" : "保存"}</button>
+          <button onClick={save} disabled={isPending} className="btn btn-primary text-sm">{saveButtonText}</button>
         </div>
       </div>
 
-      {/* 草稿恢复提示 */}
       {draftAvailable && !draftRestored && (
         <div className="mb-6 px-5 py-4 rounded-xl border border-amber-300/30 bg-amber-300/8 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium">检测到未保存的草稿</p>
-            <p className="text-xs text-[var(--muted)] mt-0.5">上次自动保存于几分钟前，要恢复吗？</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">{draftSavedAt ? `上次自动保存于 ${formatSavedAt(draftSavedAt)}，要恢复吗？` : "要恢复吗？"}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={dismissDraft} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--fg)] transition">丢弃</button>
@@ -144,33 +248,31 @@ export function NotesEditor({ mode, initial }: Props) {
         <div className="mb-8 px-4 py-3 rounded-lg text-sm border border-[var(--rose)]/20 bg-[var(--rose)]/5 text-[var(--rose)]">{error}</div>
       )}
 
-      {/* Writing area */}
       <div className={`${showPreview ? "grid grid-cols-2 gap-6" : ""}`}>
         <div className="space-y-6">
           <input
-            value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题..."
+            value={title} onChange={(e) => { setTitle(e.target.value); markDirty(); }} placeholder="标题..."
             autoFocus
             className="w-full text-4xl font-semibold bg-transparent border-none outline-none placeholder:text-[var(--subtle)] tracking-tight"
           />
 
           <input
-            value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
+            value={coverImage} onChange={(e) => { setCoverImage(e.target.value); markDirty(); }}
             placeholder="封面图 URL（可选，支持粘贴上传链接）"
             className="w-full text-sm bg-transparent border-b border-[var(--border)] pb-2 outline-none placeholder:text-[var(--subtle)] text-[var(--muted)] focus:border-[var(--accent)] transition"
           />
 
           <MarkdownEditor
             value={text}
-            onChange={setText}
+            onChange={(value) => { setText(value); markDirty(); }}
             placeholder="写点什么..."
             rows={showPreview ? 28 : 20}
           />
 
-          {/* Meta bar */}
           <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
-            <input value={tag} onChange={(e) => setTag(e.target.value)}
+            <input value={tag} onChange={(e) => { setTag(e.target.value); markDirty(); }}
               className="input w-28 text-sm" placeholder="标签" />
-            <select value={status} onChange={(e) => setStatus(e.target.value as NoteStatus)}
+            <select value={status} onChange={(e) => { setStatus(e.target.value as NoteStatus); markDirty(); }}
               className="input text-sm">
               <option value="PUBLISHED">发布</option>
               <option value="SCHEDULED">定时发布</option>
@@ -180,19 +282,18 @@ export function NotesEditor({ mode, initial }: Props) {
               <input
                 type="datetime-local"
                 value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
+                onChange={(e) => { setScheduledAt(e.target.value); markDirty(); }}
                 className="input text-sm"
               />
             )}
             <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer select-none">
-              <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="accent-[var(--accent)]" />
+              <input type="checkbox" checked={pinned} onChange={(e) => { setPinned(e.target.checked); markDirty(); }} className="accent-[var(--accent)]" />
               置顶
             </label>
             <span className="text-[11px] text-[var(--subtle)] ml-auto">{text.length} 字 · 约 {Math.max(1, Math.ceil(text.length / 400))} 分钟阅读</span>
           </div>
         </div>
 
-        {/* 实时预览面板 */}
         {showPreview && (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 overflow-y-auto max-h-[calc(100vh-12rem)] sticky top-24">
             <div className="flex items-center justify-between mb-4">

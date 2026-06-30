@@ -14,12 +14,12 @@ type Props = {
   initial?: { id: string; title: string; detail: string; meta: string; status: string; order: number; active: boolean };
 };
 
-export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(--accent)", initial }: Props) {
+export function ContentEditor({ mode, section, initial }: Props) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [detail, setDetail] = useState(initial?.detail ?? "");
   const [meta, setMeta] = useState(initial?.meta ?? "");
-  const [status, setStatus] = useState(initial?.status ?? "");
+  const [status, setStatus] = useState(initial?.status ?? (section === "INSPIRATION" ? "待整理" : ""));
   const [order, setOrder] = useState(initial?.order ?? 0);
   const [active, setActive] = useState(initial?.active ?? true);
   const [isPending, startTransition] = useTransition();
@@ -65,7 +65,16 @@ export function ContentEditor({ mode, section, sectionLabel, accentColor = "var(
 
         <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
           <input value={meta} onChange={(e) => setMeta(e.target.value)} className="input w-32 text-sm" placeholder="副标题" />
-          <input value={status} onChange={(e) => setStatus(e.target.value)} className="input w-28 text-sm" placeholder="状态" />
+          {section === "INSPIRATION" ? (
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="input text-sm">
+              <option value="待整理">待整理</option>
+              <option value="已整理">已整理</option>
+              <option value="已转化">已转化</option>
+              <option value="归档">归档</option>
+            </select>
+          ) : (
+            <input value={status} onChange={(e) => setStatus(e.target.value)} className="input w-28 text-sm" placeholder="状态" />
+          )}
           <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} className="input w-20 text-sm" placeholder="排序" />
           <label className="flex items-center gap-2 text-sm text-[var(--muted)] cursor-pointer">
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> 启用

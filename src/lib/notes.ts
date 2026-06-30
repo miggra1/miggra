@@ -23,6 +23,34 @@ export async function listNotes() {
   );
 }
 
+export async function listPublishedNotes() {
+  return withDbTimeout(
+    prisma.note.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
+    }),
+  );
+}
+
+export async function listRecentEditableNotes() {
+  return withDbTimeout(
+    prisma.note.findMany({
+      orderBy: [{ updatedAt: "desc" }],
+      take: 12,
+    }),
+  );
+}
+
+export async function listScheduledNotes() {
+  return withDbTimeout(
+    prisma.note.findMany({
+      where: { status: "SCHEDULED" },
+      orderBy: [{ scheduledAt: "asc" }, { updatedAt: "desc" }],
+      take: 6,
+    }),
+  );
+}
+
 export async function listNotesSafe() {
   try {
     const notes = await listNotes();

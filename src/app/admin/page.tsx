@@ -1,4 +1,4 @@
-import { listNotesSafe } from "@/lib/notes";
+import { listNotesSafe, listRecentEditableNotes, listScheduledNotes } from "@/lib/notes";
 import { computeStatsFromNotes } from "@/lib/stats";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +8,7 @@ const sections = [
   { href: "/admin/now/new", label: "更新 Now", desc: "此刻在做什么", color: "#22c55e", icon: "▸" },
   { href: "/admin/wish/new", label: "许个愿望", desc: "想去的地方、想做的事", color: "#8b5cf6", icon: "✦" },
   { href: "/admin/reading/new", label: "加一本书", desc: "在读、读过、想读", color: "#f59e0b", icon: "▣" },
-  { href: "/admin/inspirations/new", label: "记灵感", desc: "忽然冒出来的点子", color: "#ec4899", icon: "◆" },
+  { href: "/admin/inspirations/new", label: "记灵感", desc: "先放进待整理收集箱", color: "#ec4899", icon: "◆" },
   { href: "/admin/timeline/new", label: "加节点", desc: "人生和站点的变化", color: "#06b6d4", icon: "◷" },
 ];
 
@@ -17,9 +17,10 @@ export default async function AdminDashboard() {
   const stats = computeStatsFromNotes(notes);
 
   // 最近草稿 & 定时发布
-  const recentDrafts = notes.filter((n) => n.status === "DRAFT").slice(0, 2);
-  const scheduled = notes.filter((n) => n.status === "SCHEDULED");
-  const recentPublished = notes.filter((n) => n.status === "PUBLISHED").slice(0, 4);
+  const recentEditable = await listRecentEditableNotes().catch(() => notes);
+  const scheduled = await listScheduledNotes().catch(() => notes.filter((n) => n.status === "SCHEDULED"));
+  const recentDrafts = recentEditable.filter((n) => n.status === "DRAFT").slice(0, 4);
+  const recentPublished = recentEditable.filter((n) => n.status === "PUBLISHED").slice(0, 4);
   const all = [...recentDrafts, ...recentPublished].slice(0, 6);
 
   // 获取各专区计数
@@ -78,16 +79,25 @@ export default async function AdminDashboard() {
           <Link href="/admin/notes" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">全部 →</Link>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
-          {all.length === 0 && (
+          {all.length === 0 && scheduled.length === 0 && (
             <p className="text-sm text-[var(--muted)] col-span-full py-4">还没有内容，点上方按钮开始写吧 ✎</p>
           )}
+          {scheduled.map((note) => (
+            <Link key={note.id} href={`/admin/notes/${note.id}`}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-purple-400/20 bg-purple-400/5 transition hover:bg-purple-400/10"
+            >
+              <span className="h-2 w-2 rounded-full shrink-0 bg-[var(--purple)]" />
+              <span className="text-sm font-medium truncate flex-1">{note.title}</span>
+              <span className="text-[11px] text-[var(--muted)]">⏳ {note.scheduledAt ? new Date(note.scheduledAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "定时"}</span>
+            </Link>
+          ))}
           {all.map((note) => (
             <Link key={note.id} href={`/admin/notes/${note.id}`}
               className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--card)] transition hover:bg-[var(--card-strong)]"
             >
               <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: note.status === "PUBLISHED" ? "var(--green)" : note.status === "SCHEDULED" ? "var(--purple)" : "var(--amber)" }} />
               <span className="text-sm font-medium truncate flex-1">{note.title}</span>
-              <span className="text-[11px] text-[var(--muted)]">{note.status === "DRAFT" ? "草稿" : note.status === "SCHEDULED" ? "⏳ 定时" : "已发布"}</span>
+              <span className="text-[11px] text-[var(--muted)]">{note.status === "DRAFT" ? `草稿 · ${new Date(note.updatedAt).toLocaleDateString("zh-CN")}` : note.status === "SCHEDULED" ? "⏳ 定时" : "已发布"}</span>
             </Link>
           ))}
         </div>

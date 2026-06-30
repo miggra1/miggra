@@ -28,11 +28,12 @@ export default async function AdminNotesList() {
             className="flex items-center gap-4 px-4 py-3 surface-hover rounded-lg animate-in"
             style={{ animationDelay: `${i * 30}ms` }}
           >
-            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: note.status === "PUBLISHED" ? "var(--green)" : "var(--amber)" }} />
+            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: note.status === "PUBLISHED" ? "var(--green)" : note.status === "SCHEDULED" ? "var(--purple)" : "var(--amber)" }} />
             <span className="text-[12px] text-[var(--muted)] w-16 shrink-0 truncate">{note.tag}</span>
             <span className="flex-1 text-[15px] font-medium truncate">{note.title}</span>
+            <span className="text-[10px] text-[var(--muted)] font-medium">{note.status === "DRAFT" ? "草稿" : note.status === "SCHEDULED" ? "定时" : "发布"}</span>
             {note.pinned && <span className="text-[10px] text-[var(--rose)] font-medium">置顶</span>}
-            <span className="text-[11px] text-[var(--subtle)] tabular-nums">{new Date(note.createdAt).toISOString().slice(0, 10)}</span>
+            <span className="text-[11px] text-[var(--subtle)] tabular-nums">{new Date(note.updatedAt).toISOString().slice(0, 10)}</span>
           </Link>
         ))}
       </div>
