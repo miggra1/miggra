@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { isAdminAuthenticated } from "@/lib/auth";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const store = await cookies();
-  const token = store.get("miggra_admin")?.value;
-  const adminPassword = process.env.ADMIN_PASSWORD || "123456";
-  const authenticated = token === adminPassword;
+  const authenticated = await isAdminAuthenticated();
   return NextResponse.json({ authenticated });
 }

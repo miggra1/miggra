@@ -4,7 +4,7 @@ import { DbErrorBanner } from "./components/db-error-banner";
 import { FeatureHub } from "./components/feature-hub";
 import { WriteButton } from "./components/write-button";
 import { getHomepageModulesSafe } from "@/lib/homepage";
-import { listPhotos } from "@/lib/photos";
+import { listHomePhotos } from "@/lib/photos";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 
 const fallbackFeatureCards = [
@@ -23,7 +23,7 @@ function daysAgo(date: Date): number {
 }
 
 function writingStatus(latestNoteAt: Date | null, publishedCount: number): { text: string; tone: "fresh" | "warm" | "quiet" } {
-  if (!latestNoteAt) return { text: "写下第一篇吧。", tone: "quiet" };
+  if (!latestNoteAt) return { text: publishedCount > 0 ? "继续写点什么吧。" : "写下第一篇吧。", tone: "quiet" };
   const days = daysAgo(latestNoteAt);
   if (days === 0) return { text: "今天写过了 ✨", tone: "fresh" };
   if (days === 1) return { text: "昨天刚写过，今天还想写吗？", tone: "warm" };
@@ -43,12 +43,12 @@ function yearLabel(date: Date): string {
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
   const { modules, dbError: modulesDbError } = await getHomepageModulesSafe();
-  const photos = await listPhotos().catch(() => []);
+  const photos = await listHomePhotos(6).catch(() => []);
   const onThisDayNotes = await getOnThisDayNotes().catch(() => []);
   const published = notes.filter((note) => note.status === "PUBLISHED");
   const latest = published.slice(0, 6);
   const pinned = published.find((note) => note.pinned);
-  const random = published[Math.floor(Math.random() * Math.max(published.length, 1))] ?? null;
+  const random = published.length ? published[new Date().getDate() % published.length] : null;
 
   const tags = Array.from(new Set(published.map((note) => note.tag))).slice(0, 6);
   const featureCards = (modules.length ? modules : fallbackFeatureCards)

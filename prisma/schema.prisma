@@ -124,9 +124,18 @@ model Photo {
   id        String   @id @default(cuid())
   url       String
   caption   String?
+  album     String?
+  takenAt   DateTime?
+  location  String?
+  tags      String?
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("photos")
+  @@index([active, featured, order])
+  @@index([album, active])
+  @@index([takenAt])
 }

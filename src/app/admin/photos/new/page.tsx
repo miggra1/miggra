@@ -9,6 +9,13 @@ export default function NewPhotoPage() {
   const [saving, setSaving] = useState(false);
   const [url, setUrl] = useState("");
   const [caption, setCaption] = useState("");
+  const [album, setAlbum] = useState("");
+  const [takenAt, setTakenAt] = useState("");
+  const [location, setLocation] = useState("");
+  const [tags, setTags] = useState("");
+  const [featured, setFeatured] = useState(false);
+  const [active, setActive] = useState(true);
+  const [order, setOrder] = useState(0);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -44,7 +51,7 @@ export default function NewPhotoPage() {
       const res = await fetch("/api/photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, caption: caption.trim() || undefined }),
+        body: JSON.stringify({ url, caption, album, takenAt, location, tags, featured, active, order }),
       });
       if (!res.ok) throw new Error("保存失败");
       router.push("/admin/photos");
@@ -63,7 +70,6 @@ export default function NewPhotoPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Upload area */}
         {!url ? (
           <div
             onClick={() => fileRef.current?.click()}
@@ -103,26 +109,25 @@ export default function NewPhotoPage() {
             <div className="rounded-2xl overflow-hidden border border-[var(--border)]">
               <img src={url} alt="" className="w-full h-64 object-cover" />
             </div>
-            <input
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="照片描述（可选）"
-              className="w-full bg-transparent border-b border-[var(--border)] pb-2 text-[15px] outline-none placeholder:text-[var(--subtle)] focus:border-[var(--border-strong)] transition"
-            />
+            <input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="照片描述（可选）" className="input w-full" />
+            <div className="grid gap-3 md:grid-cols-2">
+              <input value={album} onChange={(e) => setAlbum(e.target.value)} placeholder="相册，例如：旅行、日常" className="input" />
+              <input type="date" value={takenAt} onChange={(e) => setTakenAt(e.target.value)} className="input" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="地点" className="input" />
+              <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="标签，用逗号分隔" className="input" />
+            </div>
+            <input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} placeholder="排序" className="input w-full" />
+            <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--muted)]">
+              <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} /> 精选</label>
+              <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> 前台显示</label>
+            </div>
             <div className="flex gap-3">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={saving}
-                onClick={handleSave}
-              >
+              <button type="button" className="btn btn-primary" disabled={saving} onClick={handleSave}>
                 {saving ? "保存中..." : "保存到照片墙"}
               </button>
-              <button
-                type="button"
-                className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition"
-                onClick={() => { setUrl(""); setPreviewUrl(null); setPendingFile(null); }}
-              >
+              <button type="button" className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition" onClick={() => { setUrl(""); setPreviewUrl(null); setPendingFile(null); }}>
                 重选
               </button>
             </div>
