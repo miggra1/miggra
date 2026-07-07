@@ -18,6 +18,7 @@ export default function NewPhotoPage() {
   const [order, setOrder] = useState(0);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelected = (file: File) => {
@@ -29,16 +30,20 @@ export default function NewPhotoPage() {
   const handleUpload = async () => {
     if (!pendingFile) return;
     setUploading(true);
+    setError("");
     try {
       const form = new FormData();
       form.append("file", pendingFile);
       const res = await fetch("/api/upload", { method: "POST", body: form });
-      if (!res.ok) throw new Error("上传失败");
-      const data = (await res.json()) as { url: string };
+      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!res.ok || !data?.url) {
+        setError(data?.error ?? `上传失败 (HTTP ${res.status})`);
+        return;
+      }
       setUrl(data.url);
       setPendingFile(null);
     } catch {
-      alert("上传失败，请重试");
+      setError("网络错误，上传失败");
     } finally {
       setUploading(false);
     }
@@ -47,17 +52,23 @@ export default function NewPhotoPage() {
   const handleSave = async () => {
     if (!url) return;
     setSaving(true);
+    setError("");
     try {
       const res = await fetch("/api/photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, caption, album, takenAt, location, tags, featured, active, order }),
       });
-      if (!res.ok) throw new Error("保存失败");
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? `保存失败 (HTTP ${res.status})`);
+        setSaving(false);
+        return;
+      }
       router.push("/admin/photos");
       router.refresh();
     } catch {
-      alert("保存失败");
+      setError("网络错误，保存失败");
       setSaving(false);
     }
   };
@@ -70,6 +81,7 @@ export default function NewPhotoPage() {
       </div>
 
       <div className="space-y-6">
+        {error && <p className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>}
         {!url ? (
           <div
             onClick={() => fileRef.current?.click()}
