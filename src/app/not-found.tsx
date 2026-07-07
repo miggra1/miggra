@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-6 text-[var(--fg)]">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-6 text-[var(--fg)] ambient-bg">
       <div className="max-w-md rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-8 text-center backdrop-blur-xl">
         <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">404</p>
         <h1 className="mt-3 text-3xl font-semibold">页面没有找到</h1>

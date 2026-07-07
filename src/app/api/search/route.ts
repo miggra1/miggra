@@ -79,7 +79,8 @@ export async function GET(request: NextRequest) {
         id: c.id,
         title: c.title,
         snippet: c.detail.length > 140 ? c.detail.slice(0, 140) + "\u2026" : c.detail,
-        section: sectionLabels[c.section] ?? c.section,
+        section: c.section,
+        sectionLabel: sectionLabels[c.section] ?? c.section,
         createdAt: c.createdAt,
       })),
       ...pages.map((p) => ({

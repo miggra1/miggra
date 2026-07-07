@@ -4,12 +4,42 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 type SearchResult = {
+  type: "note" | "content" | "page" | "guestbook";
   id: string;
   title: string;
   snippet: string;
-  tag: string;
+  tag?: string;
+  section?: string;
+  sectionLabel?: string;
+  slug?: string;
   createdAt: string;
 };
+
+const sectionPaths: Record<string, string> = {
+  NOW: "now",
+  WISH: "wish",
+  READING: "reading",
+  INSPIRATION: "inspirations",
+  TIMELINE: "timeline",
+};
+
+function getHref(r: SearchResult): string {
+  switch (r.type) {
+    case "note": return `/notes/${r.id}`;
+    case "content": return `/${sectionPaths[r.section ?? ""] ?? "now"}/${r.id}`;
+    case "page": return `/pages/${r.slug ?? r.id}`;
+    case "guestbook": return `/guestbook`;
+  }
+}
+
+function typeLabel(r: SearchResult): string {
+  switch (r.type) {
+    case "note": return r.tag ?? "碎碎念";
+    case "content": return r.sectionLabel ?? "内容";
+    case "page": return "页面";
+    case "guestbook": return "留言";
+  }
+}
 
 export function SearchDialog() {
   const router = useRouter();
@@ -21,7 +51,6 @@ export function SearchDialog() {
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // ⌘K / Ctrl+K to toggle, and custom event from search trigger button
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -41,7 +70,6 @@ export function SearchDialog() {
     };
   }, [open]);
 
-  // focus input when opened
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -51,7 +79,6 @@ export function SearchDialog() {
     }
   }, [open]);
 
-  // debounced search
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -84,9 +111,9 @@ export function SearchDialog() {
   }, [query]);
 
   const navigate = useCallback(
-    (id: string) => {
+    (r: SearchResult) => {
       setOpen(false);
-      router.push(`/notes/${id}`);
+      router.push(getHref(r));
     },
     [router],
   );
@@ -99,7 +126,7 @@ export function SearchDialog() {
       e.preventDefault();
       setSelectedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && results[selectedIndex]) {
-      navigate(results[selectedIndex].id);
+      navigate(results[selectedIndex]);
     }
   };
 
@@ -110,15 +137,12 @@ export function SearchDialog() {
       className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
       onClick={() => setOpen(false)}
     >
-      {/* backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in" />
 
-      {/* dialog */}
       <div
-        className="relative w-full max-w-lg mx-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)] shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg mx-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)] shadow-2xl overflow-hidden animate-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]">
           <span className="text-[var(--subtle)] text-sm">🔍</span>
           <input
@@ -126,7 +150,7 @@ export function SearchDialog() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="搜索碎碎念…"
+            placeholder="搜索碎碎念、书单、灵感…"
             className="flex-1 bg-transparent outline-none text-sm placeholder:text-[var(--subtle)]"
           />
           <kbd className="text-[10px] text-[var(--subtle)] border border-[var(--border)] rounded px-2 py-0.5 font-mono">
@@ -134,7 +158,6 @@ export function SearchDialog() {
           </kbd>
         </div>
 
-        {/* results */}
         <div className="max-h-80 overflow-y-auto">
           {loading && (
             <p className="px-4 py-6 text-center text-sm text-[var(--muted)] animate-pulse">
@@ -150,21 +173,21 @@ export function SearchDialog() {
 
           {!query && (
             <p className="px-4 py-6 text-center text-sm text-[var(--muted)]">
-              输入关键词搜索已发布的碎碎念
+              输入关键词搜索全站内容
             </p>
           )}
 
           {results.map((r, i) => (
             <button
-              key={r.id}
-              onClick={() => navigate(r.id)}
+              key={`${r.type}-${r.id}`}
+              onClick={() => navigate(r)}
               className={`w-full text-left px-4 py-3 border-b border-[var(--border)] last:border-b-0 transition hover:bg-[var(--card)] ${
                 i === selectedIndex ? "bg-[var(--card)]" : ""
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[var(--subtle)] rounded-full border border-[var(--border)] px-2 py-0.5">
-                  {r.tag}
+                <span className="text-xs text-[var(--accent)] rounded-full border border-[var(--border)] px-2 py-0.5">
+                  {typeLabel(r)}
                 </span>
                 <span className="text-[11px] text-[var(--muted)]">
                   {new Date(r.createdAt).toISOString().slice(0, 10)}

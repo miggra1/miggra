@@ -3,6 +3,7 @@ import { ThemeProvider } from "./theme-provider";
 import { TopBar } from "./components/top-bar";
 import { SiteFooter } from "./components/site-footer";
 import { SearchDialog } from "./components/search-dialog";
+import { BackToTop } from "./components/back-to-top";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <TopBar />
           {children}
           <SiteFooter />
+          <BackToTop />
         </ThemeProvider>
       </body>
     </html>
