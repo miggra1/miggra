@@ -36,7 +36,7 @@ export function InspirationsClient({ items }: { items: Item[] }) {
         {filtered.map((item, i) => {
           const key = item.id ?? `${item.title}-${i}`;
           const content = (
-            <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
+            <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 card-interactive animate-in" style={{ animationDelay: `${i * 50}ms` }}>
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta ?? "灵感"}</p>
               <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
               <div className="mt-3 line-clamp-3">

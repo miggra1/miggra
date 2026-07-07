@@ -22,12 +22,12 @@ export function FeatureHub({ items }: FeatureHubProps) {
         </div>
         <p className="text-sm text-[var(--subtle)]">这些页面会和日常一起慢慢长出来。</p>
       </div>
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:-translate-y-1 hover:bg-[var(--card-strong)]"
+            className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-5 card-interactive"
           >
             <div className="flex items-start justify-between gap-3">
               <div>

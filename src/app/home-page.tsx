@@ -43,10 +43,10 @@ function yearLabel(date: Date): string {
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
   const { modules, dbError: modulesDbError } = await getHomepageModulesSafe();
-  const photos = await listHomePhotos(6).catch(() => []);
+  const photos = await listHomePhotos(4).catch(() => []);
   const onThisDayNotes = await getOnThisDayNotes().catch(() => []);
   const published = notes.filter((note) => note.status === "PUBLISHED");
-  const latest = published.slice(0, 6);
+  const latest = published.slice(0, 3);
   const pinned = published.find((note) => note.pinned);
   const random = published.length ? published[new Date().getDate() % published.length] : null;
 
@@ -132,13 +132,13 @@ export async function HomePage() {
         </div>
 
         {/* ── 功能入口 ── */}
-        <div className="mt-16">
+        <div className="mt-20">
           <FeatureHub items={featureCards} />
         </div>
 
         {/* ── 那年今日 ── */}
         {onThisDayNotes.length > 0 && (
-          <section className="mt-16 rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
+          <section className="mt-20 rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">On this day</p>
             <h2 className="mt-2 text-2xl font-semibold mb-4">那年今日</h2>
             <div className="space-y-3">
@@ -161,7 +161,7 @@ export async function HomePage() {
 
         {/* ── 置顶精选 ── */}
         {pinned ? (
-          <section className="mt-16 rounded-[1.75rem] border border-amber-300/25 bg-amber-300/8 p-6">
+          <section className="mt-20 rounded-[1.75rem] border border-amber-300/25 bg-amber-300/8 p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-amber-100/70">Pinned</p>
             <h2 className="mt-2 text-2xl font-semibold">置顶精选</h2>
             <a href={`/notes/${pinned.id}`} className="mt-4 block rounded-2xl border border-amber-300/20 bg-black/15 p-5 transition hover:bg-black/25">
@@ -179,7 +179,7 @@ export async function HomePage() {
         ) : null}
 
         {/* ── 最新碎碎念 ── */}
-        <section id="notes" className="mt-16 grid gap-4">
+        <section id="notes" className="mt-20 grid gap-4">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Latest notes</p>
@@ -213,7 +213,7 @@ export async function HomePage() {
 
         {/* ── 照片墙预览 ── */}
         {photos.length > 0 && (
-          <section className="mt-16">
+          <section className="mt-20">
             <div className="flex items-end justify-between gap-4 mb-6">
               <div>
                 <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Photos</p>
@@ -222,7 +222,7 @@ export async function HomePage() {
               <Link href="/photos" className="text-sm text-[var(--subtle)] hover:text-[var(--fg)] transition">查看全部 →</Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 snap-x snap-mandatory">
-              {photos.slice(0, 6).map((photo) => (
+              {photos.slice(0, 4).map((photo) => (
                 <Link
                   key={photo.id}
                   href="/photos"
@@ -240,7 +240,7 @@ export async function HomePage() {
         )}
 
         {/* ── About + 可点击标签 ── */}
-        <section className="mt-16 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+        <section className="mt-20 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--card)] p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">About</p>
             <h2 className="mt-3 text-2xl font-semibold">这个站要做什么</h2>
@@ -265,12 +265,6 @@ export async function HomePage() {
             </div>
           </div>
         </section>
-
-        {/* ── 底部 ── */}
-        <footer className="mt-24 pt-8 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--subtle)]">
-          <span>Miggra Journal</span>
-          <Link href="/admin" className="hover:text-[var(--fg)] transition">后台入口</Link>
-        </footer>
       </section>
     </main>
     </>
