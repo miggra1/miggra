@@ -245,7 +245,7 @@ export async function HomePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">About</p>
             <h2 className="mt-3 text-2xl font-semibold">这个站要做什么</h2>
             <p className="mt-4 leading-8 text-[var(--muted)]">
-              用来记录碎碎念、灵感、观察和情绪。后端已经接到 MySQL，可以继续加登录、管理后台、标签和搜索。
+              这里是我的个人角落，记录日常碎碎念、灵感瞬间和生活碎片。欢迎随便逛逛，也欢迎在留言板留下你的脚印。
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/reading" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--fg)] transition hover:bg-[var(--card-strong)]">书单</Link>

@@ -5,12 +5,15 @@ import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 export const revalidate = 60;
 export const runtime = "nodejs";
 
+const PAGE_SIZE = 10;
+
 export default async function NotesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string }>;
+  searchParams: Promise<{ tag?: string; page?: string }>;
 }) {
-  const { tag: filterTag } = await searchParams;
+  const { tag: filterTag, page: pageStr } = await searchParams;
+  const page = Math.max(1, parseInt(pageStr || "1", 10) || 1);
   const { notes } = await listNotesSafe();
   const published = notes.filter(
     (n) => n.status === "PUBLISHED" && (!filterTag || n.tag === filterTag),
@@ -18,6 +21,17 @@ export default async function NotesPage({
   const tags = Array.from(
     new Set(notes.filter((n) => n.status === "PUBLISHED").map((n) => n.tag)),
   );
+
+  const totalPages = Math.ceil(published.length / PAGE_SIZE);
+  const paged = published.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function pageHref(p: number) {
+    const params = new URLSearchParams();
+    if (filterTag) params.set("tag", filterTag);
+    if (p > 1) params.set("page", String(p));
+    const q = params.toString();
+    return q ? `/notes?${q}` : "/notes";
+  }
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
@@ -31,9 +45,14 @@ export default async function NotesPage({
         {/* 标签筛选 */}
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-8">
+            <a href="/notes"
+              className={`rounded-full border px-4 py-2 text-sm transition ${!filterTag ? "border-[var(--accent)] text-[var(--fg)] bg-[var(--card-strong)]" : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-strong)] hover:text-[var(--fg)]"}`}
+            >
+              全部
+            </a>
             {tags.map((tag) => (
               <a key={tag} href={`?tag=${encodeURIComponent(tag)}`}
-                className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)] hover:text-[var(--fg)]"
+                className={`rounded-full border px-4 py-2 text-sm transition ${filterTag === tag ? "border-[var(--accent)] text-[var(--fg)] bg-[var(--card-strong)]" : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-strong)] hover:text-[var(--fg)]"}`}
               >
                 {tag}
               </a>
@@ -42,7 +61,7 @@ export default async function NotesPage({
         )}
 
         <div className="grid gap-4">
-          {published.map((note) => (
+          {paged.map((note) => (
             <Link key={note.id} href={`/notes/${note.id}`}
               className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-0.5 hover:bg-[var(--card-strong)]"
             >
@@ -62,6 +81,26 @@ export default async function NotesPage({
             </Link>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <nav className="mt-10 flex items-center justify-center gap-4">
+            {page > 1 ? (
+              <a href={pageHref(page - 1)} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
+                上一页
+              </a>
+            ) : (
+              <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] opacity-40">上一页</span>
+            )}
+            <span className="text-sm text-[var(--subtle)]">{page} / {totalPages}</span>
+            {page < totalPages ? (
+              <a href={pageHref(page + 1)} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
+                下一页
+              </a>
+            ) : (
+              <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] opacity-40">下一页</span>
+            )}
+          </nav>
+        )}
       </div>
     </main>
   );

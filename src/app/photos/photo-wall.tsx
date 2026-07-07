@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export type PhotoWallItem = {
   id: string;
@@ -22,13 +22,33 @@ function formatDate(value: string | null) {
 }
 
 export function PhotoWall({ photos }: { photos: PhotoWallItem[] }) {
-  const [lightbox, setLightbox] = useState<PhotoWallItem | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightbox = lightboxIndex !== null ? photos[lightboxIndex] : null;
+
+  const closeLightbox = useCallback(() => setLightboxIndex(null), []);
+  const showPrev = useCallback(() => {
+    setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + photos.length) % photos.length));
+  }, [photos.length]);
+  const showNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % photos.length));
+  }, [photos.length]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") showPrev();
+      else if (e.key === "ArrowRight") showNext();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightboxIndex, closeLightbox, showPrev, showNext]);
 
   return (
     <>
       <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
         {photos.map((photo, i) => (
-          <div key={photo.id} className="break-inside-avoid group cursor-pointer" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setLightbox(photo)}>
+          <div key={photo.id} className="break-inside-avoid group cursor-pointer" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setLightboxIndex(i)}>
             <div className="overflow-hidden rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
               <img src={photo.url} alt={photo.caption ?? ""} loading="lazy" className="w-full h-auto block transition duration-500 group-hover:scale-[1.02]" />
               {(photo.caption || photo.album || photo.takenAt || photo.location || photo.tags) && (
@@ -48,10 +68,28 @@ export function PhotoWall({ photos }: { photos: PhotoWallItem[] }) {
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in" onClick={() => setLightbox(null)}>
-          <button className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl w-10 h-10 rounded-full flex items-center justify-center transition" onClick={() => setLightbox(null)}>
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in" onClick={closeLightbox}>
+          <button className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl w-10 h-10 rounded-full flex items-center justify-center transition" onClick={closeLightbox}>
             ✕
           </button>
+
+          {photos.length > 1 && (
+            <>
+              <button
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-3xl w-12 h-12 rounded-full flex items-center justify-center transition bg-white/5 hover:bg-white/10"
+                onClick={(e) => { e.stopPropagation(); showPrev(); }}
+              >
+                ‹
+              </button>
+              <button
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-3xl w-12 h-12 rounded-full flex items-center justify-center transition bg-white/5 hover:bg-white/10"
+                onClick={(e) => { e.stopPropagation(); showNext(); }}
+              >
+                ›
+              </button>
+            </>
+          )}
+
           <img src={lightbox.url} alt={lightbox.caption ?? ""} className="max-w-full max-h-[82vh] rounded-xl object-contain" onClick={(e) => e.stopPropagation()} />
           {(lightbox.caption || lightbox.album || lightbox.location || lightbox.takenAt) && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 max-w-[90vw] rounded-2xl bg-white/10 px-4 py-3 text-center text-white/80 backdrop-blur">
@@ -59,6 +97,12 @@ export function PhotoWall({ photos }: { photos: PhotoWallItem[] }) {
               <p className="mt-1 text-xs text-white/55">
                 {[lightbox.album, formatDate(lightbox.takenAt), lightbox.location].filter(Boolean).join(" · ")}
               </p>
+            </div>
+          )}
+
+          {photos.length > 1 && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-white/40">
+              {lightboxIndex! + 1} / {photos.length}
             </div>
           )}
         </div>
