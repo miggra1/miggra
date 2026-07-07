@@ -5,8 +5,26 @@ import { GuestbookForm } from "./guestbook-form";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "留言板", description: "留下一个脚印" };
 
-export default async function GuestbookPage() {
-  const entries = await prisma.guestbookEntry.findMany({ where: { status: "PUBLISHED" }, orderBy: { createdAt: "desc" }, take: 20 });
+export default async function GuestbookPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageStr } = await searchParams;
+  const page = Math.max(1, parseInt(pageStr || "1", 10) || 1);
+  const pageSize = 20;
+
+  const [entries, total] = await Promise.all([
+    prisma.guestbookEntry.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+    }),
+    prisma.guestbookEntry.count({ where: { status: "PUBLISHED" } }),
+  ]);
+
+  const totalPages = Math.ceil(total / pageSize);
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
@@ -36,6 +54,26 @@ export default async function GuestbookPage() {
             </article>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <nav className="mt-8 flex items-center justify-center gap-4">
+            {page > 1 ? (
+              <a href={`?page=${page - 1}`} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
+                上一页
+              </a>
+            ) : (
+              <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] opacity-40">上一页</span>
+            )}
+            <span className="text-sm text-[var(--subtle)]">{page} / {totalPages}</span>
+            {page < totalPages ? (
+              <a href={`?page=${page + 1}`} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
+                下一页
+              </a>
+            ) : (
+              <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] opacity-40">下一页</span>
+            )}
+          </nav>
+        )}
       </div>
     </main>
   );

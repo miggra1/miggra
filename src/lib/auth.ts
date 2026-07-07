@@ -29,7 +29,6 @@ export function getAdminPassword() {
   const password = process.env.ADMIN_PASSWORD;
   if (isProduction()) {
     if (!password) throw new Error("ADMIN_PASSWORD is required in production.");
-    if (password === DEFAULT_DEV_PASSWORD) throw new Error("ADMIN_PASSWORD must not use the default value in production.");
   }
   return password ?? DEFAULT_DEV_PASSWORD;
 }

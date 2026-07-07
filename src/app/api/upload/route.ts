@@ -46,7 +46,14 @@ export async function POST(request: Request) {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
   const filename = `${crypto.randomUUID()}.${ext}`;
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  // TODO: Vercel 生产环境文件系统只读，/tmp 仅为临时存储，请求结束后可能被清理。
+  // 需接入外部存储（Vercel Blob / Cloudflare R2 / S3）才能持久化上传文件。
+  // 本地开发写入 public/uploads/ 正常工作。
+  const isVercel = !!process.env.VERCEL;
+  const uploadsDir = isVercel
+    ? path.join("/tmp", "uploads")
+    : path.join(process.cwd(), "public", "uploads");
+
   if (!existsSync(uploadsDir)) {
     await mkdir(uploadsDir, { recursive: true });
   }
@@ -54,5 +61,9 @@ export async function POST(request: Request) {
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(path.join(uploadsDir, filename), buffer);
 
-  return NextResponse.json({ url: `/uploads/${filename}` }, { status: 201 });
+  const url = isVercel
+    ? `/api/upload/${filename}`
+    : `/uploads/${filename}`;
+
+  return NextResponse.json({ url, warning: isVercel ? "Vercel 上传仅临时有效，请配置外部存储（如 Vercel Blob / S3）。" : null }, { status: 201 });
 }

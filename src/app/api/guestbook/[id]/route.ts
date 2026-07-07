@@ -19,7 +19,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const entry = await prisma.guestbookEntry.update({
     where: { id },
     data: { status: body.status === "PUBLISHED" ? "PUBLISHED" : body.status === "HIDDEN" ? "HIDDEN" : "PENDING" },
-  });
+  }).catch(() => null);
+
+  if (!entry) {
+    return NextResponse.json({ error: "留言不存在。" }, { status: 404 });
+  }
 
   return NextResponse.json({ entry });
 }
@@ -30,6 +34,11 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   }
 
   const { id } = await context.params;
-  await prisma.guestbookEntry.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+
+  try {
+    await prisma.guestbookEntry.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "留言不存在或已被删除。" }, { status: 404 });
+  }
 }

@@ -5,10 +5,19 @@ import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 export const revalidate = 60;
 export const runtime = "nodejs";
 
-export default async function NotesPage() {
+export default async function NotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tag?: string }>;
+}) {
+  const { tag: filterTag } = await searchParams;
   const { notes } = await listNotesSafe();
-  const published = notes.filter((n) => n.status === "PUBLISHED");
-  const tags = Array.from(new Set(published.map((n) => n.tag)));
+  const published = notes.filter(
+    (n) => n.status === "PUBLISHED" && (!filterTag || n.tag === filterTag),
+  );
+  const tags = Array.from(
+    new Set(notes.filter((n) => n.status === "PUBLISHED").map((n) => n.tag)),
+  );
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">

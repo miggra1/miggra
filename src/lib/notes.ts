@@ -137,16 +137,19 @@ export async function getOnThisDayNotes() {
   const day = now.getDate();
 
   try {
-    // 获取非今年的已发布笔记，在应用层过滤月份和日期
-    const all = await prisma.note.findMany({
+    // 使用 Prisma 查询今年之前的已发布笔记，再在应用层精确过滤月日
+    // （Prisma 不支持原生 SQL 的 MONTH()/DAY() 函数，先缩小范围再过滤）
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const candidates = await prisma.note.findMany({
       where: {
         status: "PUBLISHED",
-        createdAt: { lt: new Date(now.getFullYear(), 0, 1) },
+        createdAt: { lt: startOfYear },
       },
       select: { id: true, title: true, text: true, createdAt: true },
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
-    return all.filter((n) => {
+    return candidates.filter((n) => {
       const d = new Date(n.createdAt);
       return d.getMonth() + 1 === month && d.getDate() === day;
     });
@@ -164,6 +167,7 @@ export async function transitionScheduledNotes() {
     },
     data: {
       status: "PUBLISHED",
+      scheduledAt: null,
     },
   });
   return result.count;

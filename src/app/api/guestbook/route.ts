@@ -23,6 +23,9 @@ export async function POST(request: Request) {
   if (!message) {
     return NextResponse.json({ error: "留言不能为空。" }, { status: 400 });
   }
+  if (message.length > 500) {
+    return NextResponse.json({ error: "留言不能超过 500 字。" }, { status: 400 });
+  }
 
   const entry = await prisma.guestbookEntry.create({
     data: { name, message, status: "PENDING" },
