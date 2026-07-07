@@ -49,8 +49,13 @@ export function PhotoWall({ photos }: { photos: PhotoWallItem[] }) {
       <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
         {photos.map((photo, i) => (
           <div key={photo.id} className="break-inside-avoid group cursor-pointer" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setLightboxIndex(i)}>
-            <div className="overflow-hidden rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+            <div className="relative overflow-hidden rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
               <img src={photo.url} alt={photo.caption ?? ""} loading="lazy" className="w-full h-auto block transition duration-500 group-hover:scale-[1.02]" />
+              {photo.caption && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 pointer-events-none">
+                  <p className="text-sm text-white line-clamp-3 leading-relaxed">{photo.caption}</p>
+                </div>
+              )}
               {(photo.caption || photo.album || photo.takenAt || photo.location || photo.tags) && (
                 <div className="px-4 py-3 space-y-2">
                   {photo.caption && <p className="text-sm text-[var(--fg-secondary)] leading-relaxed">{photo.caption}</p>}

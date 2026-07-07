@@ -27,10 +27,10 @@ export default async function GuestbookPage({
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
       <div className="mx-auto max-w-3xl px-6 py-16">
         <header className="mb-12">
-          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Guestbook</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--amber)]">Guestbook</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">公开留言板</h1>
           <p className="mt-3 text-[var(--muted)]">留下一个简短的问候、感想或者路过的脚印。</p>
         </header>
@@ -38,8 +38,8 @@ export default async function GuestbookPage({
         <GuestbookForm />
 
         <div className="mt-12 grid gap-4">
-          {entries.map((entry) => (
-            <article key={entry.id} className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
+          {entries.map((entry, i) => (
+            <article key={entry.id} className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 animate-in" style={{ animationDelay: `${i * 50}ms` }}>
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold">{entry.name}</h2>
                 <time className="text-sm text-[var(--subtle)]">{new Date(entry.createdAt).toLocaleString("zh-CN")}</time>

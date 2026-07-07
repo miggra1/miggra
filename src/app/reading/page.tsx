@@ -16,17 +16,17 @@ export default async function ReadingPage() {
     : fallbackReadingList.map((b) => ({ title: b.title, detail: b.detail, status: b.status, href: undefined as string | undefined }));
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
       <div className="mx-auto max-w-4xl px-6 py-16">
         <header className="mb-12">
-          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Reading</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--amber)]">Reading</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">书单</h1>
           <p className="mt-3 text-[var(--muted)]">整理正在读、读过和想读的书。</p>
         </header>
         <div className="grid gap-4 md:grid-cols-2">
           {source.map((item, i) => {
             const content = (
-              <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
+              <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 card-interactive animate-in">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-semibold">{item.title}</h2>
                   {item.status && <span className={`rounded-full border border-[var(--border)] px-3 py-1 text-sm ${statusColors[item.status] ?? "text-[var(--muted)]"}`}>{item.status}</span>}

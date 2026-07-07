@@ -30,7 +30,7 @@ export default async function PhotosPage({ searchParams }: { searchParams?: Prom
   const selected = [params?.album, params?.year, params?.tag].filter(Boolean).join(" / ");
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen bg-[var(--bg)] ambient-bg">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex items-end justify-between mb-8">
           <div>

@@ -34,10 +34,10 @@ export default async function NotesPage({
   }
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
       <div className="mx-auto max-w-4xl px-6 py-16">
         <header className="mb-12">
-          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">碎碎念</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--accent)]">碎碎念</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">全部碎碎念</h1>
           <p className="mt-3 text-[var(--muted)]">{published.length} 条已发布</p>
         </header>
@@ -61,13 +61,14 @@ export default async function NotesPage({
         )}
 
         <div className="grid gap-4">
-          {paged.map((note) => (
+          {paged.map((note, i) => (
             <Link key={note.id} href={`/notes/${note.id}`}
-              className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:-translate-y-0.5 hover:bg-[var(--card-strong)]"
+              className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 card-interactive animate-in"
+              style={{ animationDelay: `${i * 60}ms` }}
             >
               {note.coverImage && (
                 <div className="mb-4 -mx-2 -mt-2 overflow-hidden rounded-2xl">
-                  <img src={note.coverImage} alt="" className="w-full h-44 object-cover" />
+                  <img src={note.coverImage} alt="" className="w-full h-44 object-cover card-cover transition duration-500" />
                 </div>
               )}
               <div className="flex items-center justify-between gap-4 text-sm text-[var(--subtle)]">

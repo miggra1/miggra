@@ -12,10 +12,10 @@ export default async function TimelinePage() {
   const site = milestones.filter((m) => m.kind === "SITE");
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
       <div className="mx-auto max-w-3xl px-6 py-16">
         <header className="mb-12">
-          <p className="text-sm uppercase tracking-[0.3em] text-[var(--subtle)]">Timeline</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-[var(--cyan)]">Timeline</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">人生节点</h1>
           <p className="mt-3 text-[var(--muted)]">看这个站是怎么慢慢长出来的。</p>
         </header>
