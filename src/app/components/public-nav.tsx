@@ -8,7 +8,7 @@ const links = [
   { href: "/inspirations", label: "灵感" },
   { href: "/timeline", label: "时间线" },
   { href: "/admin", label: "后台" },
-  { href: "/rss.xml", label: "RSS" },
+  { href: "/rss", label: "RSS" },
 ];
 
 export function PublicNav() {
