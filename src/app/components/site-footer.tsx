@@ -20,7 +20,11 @@ export function SiteFooter() {
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)] mb-3">订阅</p>
-            <a href="/rss" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">RSS 订阅</a>
+            <div className="flex flex-col gap-2">
+              <a href="/rss" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">RSS 订阅</a>
+              <a href="/rss.xml" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">复制到阅读器</a>
+              <Link href="/admin" className="text-xs text-[var(--subtle)] hover:text-[var(--fg)] transition">站点管理</Link>
+            </div>
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-[var(--border)] text-center">

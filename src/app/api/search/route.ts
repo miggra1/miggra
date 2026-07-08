@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.page.findMany({
         where: {
+          status: "PUBLISHED",
           OR: [
             { title: { contains: q } },
             { content: { contains: q } },

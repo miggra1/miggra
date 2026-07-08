@@ -31,14 +31,12 @@ export function TopBar() {
             </Link>
           ))}
           <SearchTrigger />
-          <Link href="/admin" className="px-3 py-1.5 text-[13px] text-[var(--subtle)] rounded-md transition hover:text-[var(--fg)]">后台</Link>
           <ThemeToggle />
         </nav>
 
         {/* Mobile */}
         <nav className="flex md:hidden items-center gap-1">
           <SearchTrigger />
-          <Link href="/admin" className="px-2 py-1.5 text-[13px] text-[var(--subtle)] rounded-md transition hover:text-[var(--fg)]">后台</Link>
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}

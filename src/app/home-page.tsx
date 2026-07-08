@@ -6,15 +6,30 @@ import { WriteButton } from "./components/write-button";
 import { getHomepageModulesSafe } from "@/lib/homepage";
 import { listHomePhotos } from "@/lib/photos";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { getHomepageCountsSafe, type HomepageCounts } from "@/lib/homepage-stats";
 
 const fallbackFeatureCards = [
-  { href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。", count: "3" },
-  { href: "/wish", label: "Wish", title: "愿望清单", description: "把想做的事先放在这里。", count: "4" },
-  { href: "/reading", label: "Reading", title: "书单", description: "整理正在读和想读的书。", count: "3" },
-  { href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。", count: "3" },
-  { href: "/timeline", label: "Timeline", title: "人生节点", description: "看见这个站是怎么长出来的。", count: "3" },
-  { href: "/photos", label: "Photos", title: "照片墙", description: "用照片记录生活里的光。", count: "0" },
+  { key: "now", href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。" },
+  { key: "wish", href: "/wish", label: "Wish", title: "愿望清单", description: "把想做的事先放在这里。" },
+  { key: "reading", href: "/reading", label: "Reading", title: "书单", description: "整理正在读和想读的书。" },
+  { key: "inspirations", href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。" },
+  { key: "timeline", href: "/timeline", label: "Timeline", title: "人生节点", description: "看见这个站是怎么长出来的。" },
+  { key: "photos", href: "/photos", label: "Photos", title: "照片墙", description: "用照片记录生活里的光。" },
 ];
+
+const moduleCopy: Record<string, { href: string; label: string; title: string; description: string; countKey: keyof HomepageCounts }> = {
+  now: { href: "/now", label: "Now", title: "当前状态", description: "记录最近在做什么、在学什么。", countKey: "NOW" },
+  wish: { href: "/wish", label: "Wish", title: "愿望清单", description: "把想做的事先放在这里。", countKey: "WISH" },
+  reading: { href: "/reading", label: "Reading", title: "书单", description: "整理正在读和想读的书。", countKey: "READING" },
+  inspirations: { href: "/inspirations", label: "Idea", title: "灵感收集", description: "把点子、备忘和小想法存起来。", countKey: "INSPIRATION" },
+  timeline: { href: "/timeline", label: "Timeline", title: "人生节点", description: "看见这个站是怎么长出来的。", countKey: "TIMELINE" },
+  photos: { href: "/photos", label: "Photos", title: "照片墙", description: "用照片记录生活里的光。", countKey: "PHOTOS" },
+};
+
+function withCount(item: (typeof fallbackFeatureCards)[number], counts: HomepageCounts) {
+  const copy = moduleCopy[item.key] ?? moduleCopy.now;
+  return { ...item, count: String(counts[copy.countKey] ?? 0) };
+}
 
 function daysAgo(date: Date): number {
   const now = new Date();
@@ -43,6 +58,7 @@ function yearLabel(date: Date): string {
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
   const { modules, dbError: modulesDbError } = await getHomepageModulesSafe();
+  const counts = await getHomepageCountsSafe();
   const photos = await listHomePhotos(4).catch(() => []);
   const onThisDayNotes = await getOnThisDayNotes().catch(() => []);
   const published = notes.filter((note) => note.status === "PUBLISHED");
@@ -54,7 +70,7 @@ export async function HomePage() {
   const featureCards = (modules.length ? modules : fallbackFeatureCards)
     .map((item) =>
       "key" in item
-        ? { href: `/${item.key}`, label: item.title, title: item.title, description: item.title, count: "1" }
+        ? withCount({ ...(moduleCopy[item.key] ?? moduleCopy.now), title: item.title, key: item.key }, counts)
         : item,
     )
     .filter((item) => !("enabled" in item) || item.enabled !== false);

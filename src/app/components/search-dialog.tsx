@@ -15,6 +15,14 @@ type SearchResult = {
   createdAt: string;
 };
 
+const filters: Array<{ type: "all" | SearchResult["type"]; label: string }> = [
+  { type: "all", label: "全部" },
+  { type: "note", label: "碎碎念" },
+  { type: "content", label: "生活模块" },
+  { type: "page", label: "页面" },
+  { type: "guestbook", label: "留言" },
+];
+
 const sectionPaths: Record<string, string> = {
   NOW: "now",
   WISH: "wish",
@@ -41,6 +49,23 @@ function typeLabel(r: SearchResult): string {
   }
 }
 
+function Highlight({ text, query }: { text: string; query: string }) {
+  const keyword = query.trim();
+  if (!keyword) return <>{text}</>;
+  const index = text.toLocaleLowerCase().indexOf(keyword.toLocaleLowerCase());
+  if (index < 0) return <>{text}</>;
+
+  return (
+    <>
+      {text.slice(0, index)}
+      <mark className="rounded bg-[var(--accent)]/20 px-0.5 text-[var(--fg)]">
+        {text.slice(index, index + keyword.length)}
+      </mark>
+      {text.slice(index + keyword.length)}
+    </>
+  );
+}
+
 export function SearchDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,8 +73,11 @@ export function SearchDialog() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [filter, setFilter] = useState<"all" | SearchResult["type"]>("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const effectiveResults = query.trim() ? results : [];
+  const visibleResults = filter === "all" ? effectiveResults : effectiveResults.filter((result) => result.type === filter);
 
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => {
@@ -72,24 +100,26 @@ export function SearchDialog() {
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-      setQuery("");
-      setResults([]);
-      setSelectedIndex(0);
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+        setQuery("");
+        setResults([]);
+        setSelectedIndex(0);
+        setFilter("all");
+      }, 50);
     }
   }, [open]);
 
   useEffect(() => {
     if (!query.trim()) {
-      setResults([]);
       return;
     }
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    setLoading(true);
     const timer = setTimeout(async () => {
       try {
+        setLoading(true);
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
           signal: controller.signal,
         });
@@ -121,12 +151,12 @@ export function SearchDialog() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
+      setSelectedIndex((i) => Math.min(i + 1, Math.max(visibleResults.length - 1, 0)));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" && results[selectedIndex]) {
-      navigate(results[selectedIndex]);
+    } else if (e.key === "Enter" && visibleResults[selectedIndex]) {
+      navigate(visibleResults[selectedIndex]);
     }
   };
 
@@ -158,6 +188,30 @@ export function SearchDialog() {
           </kbd>
         </div>
 
+        {results.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto border-b border-[var(--border)] px-4 py-3">
+            {filters.map((item) => {
+              const count = item.type === "all" ? results.length : results.filter((result) => result.type === item.type).length;
+              return (
+                <button
+                  key={item.type}
+                  onClick={() => {
+                    setFilter(item.type);
+                    setSelectedIndex(0);
+                  }}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
+                    filter === item.type
+                      ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--fg)]"
+                      : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--fg)]"
+                  }`}
+                >
+                  {item.label} {count}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <div className="max-h-80 overflow-y-auto">
           {loading && (
             <p className="px-4 py-6 text-center text-sm text-[var(--muted)] animate-pulse">
@@ -165,7 +219,7 @@ export function SearchDialog() {
             </p>
           )}
 
-          {!loading && query && results.length === 0 && (
+          {!loading && query && visibleResults.length === 0 && (
             <p className="px-4 py-6 text-center text-sm text-[var(--muted)]">
               没有找到 &ldquo;{query}&rdquo; 相关的内容
             </p>
@@ -177,7 +231,7 @@ export function SearchDialog() {
             </p>
           )}
 
-          {results.map((r, i) => (
+          {visibleResults.map((r, i) => (
             <button
               key={`${r.type}-${r.id}`}
               onClick={() => navigate(r)}
@@ -193,9 +247,11 @@ export function SearchDialog() {
                   {new Date(r.createdAt).toISOString().slice(0, 10)}
                 </span>
               </div>
-              <p className="mt-1 text-sm font-medium truncate">{r.title}</p>
+              <p className="mt-1 text-sm font-medium truncate">
+                <Highlight text={r.title} query={query} />
+              </p>
               <p className="mt-0.5 text-xs text-[var(--muted)] line-clamp-2">
-                {r.snippet}
+                <Highlight text={r.snippet} query={query} />
               </p>
             </button>
           ))}

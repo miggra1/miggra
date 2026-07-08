@@ -13,20 +13,30 @@ export function GuestbookForm() {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [preview, setPreview] = useState<SubmittedPreview | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const submit = async () => {
+    if (submitting) return;
     setStatus(null);
-    const r = await fetch("/api/guestbook", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, message }) });
-    if (!r.ok) {
-      const d = await r.json().catch(() => null) as { error?: string } | null;
-      setStatus(d?.error ?? "提交失败");
-      return;
+    setSubmitting(true);
+    try {
+      const r = await fetch("/api/guestbook", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, message }) });
+      if (!r.ok) {
+        const d = await r.json().catch(() => null) as { error?: string } | null;
+        setStatus(d?.error ?? "提交失败");
+        return;
+      }
+      setPreview({ name: name || "匿名", message });
+      setName("");
+      setMessage("");
+      setStatus("已提交，审核通过后会显示出来。");
+      router.refresh();
+    } catch {
+      setStatus("网络有点慢，请稍后再试。");
+    } finally {
+      setSubmitting(false);
     }
-    setPreview({ name: name || "匿名", message });
-    setName("");
-    setMessage("");
-    router.refresh();
   };
 
   return (
@@ -58,8 +68,14 @@ export function GuestbookForm() {
         <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="想说点什么..."
           rows={4} className="w-full rounded-[1.5rem] border border-[var(--border)] bg-transparent px-5 py-3 text-sm outline-none placeholder:text-[var(--subtle)] resize-none mb-3" />
         <div className="flex items-center gap-4">
-          <button onClick={submit} className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:opacity-90">提交留言</button>
-          {status && <p className="text-sm text-red-400">{status}</p>}
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? "提交中..." : "提交留言"}
+          </button>
+          {status && <p className={`text-sm ${status.startsWith("已提交") ? "text-emerald-400" : "text-red-400"}`}>{status}</p>}
         </div>
       </div>
     </div>

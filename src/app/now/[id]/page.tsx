@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { ContinueReading } from "@/app/components/continue-reading";
 
 export const runtime = "nodejs"; export const revalidate = 60;
 
@@ -17,6 +18,14 @@ export default async function NowDetailPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const item = await prisma.contentItem.findFirst({ where: { id, section: "NOW" } });
   if (!item) notFound();
+  const siblings = await prisma.contentItem.findMany({
+    where: { section: "NOW", active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+  });
+  const index = siblings.findIndex((entry) => entry.id === id);
+  const prev = index > 0 ? siblings[index - 1] : null;
+  const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : null;
+  const related = siblings.filter((entry) => entry.id !== id).slice(0, 3).map((entry) => ({ href: `/now/${entry.id}`, title: entry.title, note: entry.meta ?? "Current" }));
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
@@ -29,6 +38,13 @@ export default async function NowDetailPage({ params }: { params: Promise<{ id: 
             <MarkdownRenderer>{item.detail}</MarkdownRenderer>
           </div>
         </div>
+        <ContinueReading
+          prev={prev ? { href: `/now/${prev.id}`, title: prev.title, note: prev.meta ?? "Current" } : null}
+          next={next ? { href: `/now/${next.id}`, title: next.title, note: next.meta ?? "Current" } : null}
+          related={related}
+          listHref="/now"
+          listLabel="返回 Now"
+        />
       </article>
     </main>
   );

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPublishedNoteSafe, listNotesSafe } from "@/lib/notes";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { ContinueReading } from "@/app/components/continue-reading";
 
 export const revalidate = 60; export const runtime = "nodejs";
 
@@ -15,6 +16,10 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
   const index = published.findIndex((n) => n.id === id);
   const prev = index > 0 ? published[index - 1] : null;
   const next = index < published.length - 1 ? published[index + 1] : null;
+  const related = published
+    .filter((n) => n.id !== id && n.tag === note.tag)
+    .slice(0, 3)
+    .map((n) => ({ href: `/notes/${n.id}`, title: n.title, note: n.tag }));
 
   const readingTime = Math.max(1, Math.ceil(note.text.length / 400));
 
@@ -44,22 +49,13 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        {(prev || next) && (
-          <nav className="mt-8 flex items-center justify-between gap-4">
-            {prev ? (
-              <Link href={`/notes/${prev.id}`} className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 transition hover:bg-[var(--card-strong)] group">
-                <p className="text-xs text-[var(--subtle)]">← 上一篇</p>
-                <p className="mt-1 text-sm font-medium truncate group-hover:text-[var(--accent)] transition">{prev.title}</p>
-              </Link>
-            ) : <div className="flex-1" />}
-            {next ? (
-              <Link href={`/notes/${next.id}`} className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 text-right transition hover:bg-[var(--card-strong)] group">
-                <p className="text-xs text-[var(--subtle)]">下一篇 →</p>
-                <p className="mt-1 text-sm font-medium truncate group-hover:text-[var(--accent)] transition">{next.title}</p>
-              </Link>
-            ) : <div className="flex-1" />}
-          </nav>
-        )}
+        <ContinueReading
+          prev={prev ? { href: `/notes/${prev.id}`, title: prev.title, note: prev.tag } : null}
+          next={next ? { href: `/notes/${next.id}`, title: next.title, note: next.tag } : null}
+          related={related}
+          listHref="/notes"
+          listLabel="全部碎碎念"
+        />
       </article>
     </main>
   );

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { ContinueReading } from "@/app/components/continue-reading";
 
 export const runtime = "nodejs"; export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -16,6 +17,14 @@ export default async function InspirationDetailPage({ params }: { params: Promis
   const { id } = await params;
   const item = await prisma.contentItem.findFirst({ where: { id, section: "INSPIRATION" } });
   if (!item) notFound();
+  const siblings = await prisma.contentItem.findMany({
+    where: { section: "INSPIRATION", active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+  });
+  const index = siblings.findIndex((entry) => entry.id === id);
+  const prev = index > 0 ? siblings[index - 1] : null;
+  const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : null;
+  const related = siblings.filter((entry) => entry.id !== id).slice(0, 3).map((entry) => ({ href: `/inspirations/${entry.id}`, title: entry.title, note: entry.meta ?? "灵感" }));
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <article className="mx-auto max-w-3xl px-6 py-16">
@@ -27,6 +36,13 @@ export default async function InspirationDetailPage({ params }: { params: Promis
             <MarkdownRenderer>{item.detail}</MarkdownRenderer>
           </div>
         </div>
+        <ContinueReading
+          prev={prev ? { href: `/inspirations/${prev.id}`, title: prev.title, note: prev.meta ?? "灵感" } : null}
+          next={next ? { href: `/inspirations/${next.id}`, title: next.title, note: next.meta ?? "灵感" } : null}
+          related={related}
+          listHref="/inspirations"
+          listLabel="返回灵感墙"
+        />
       </article>
     </main>
   );

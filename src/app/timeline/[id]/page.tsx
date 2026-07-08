@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { ContinueReading } from "@/app/components/continue-reading";
 
 export const runtime = "nodejs"; export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -16,6 +17,14 @@ export default async function TimelineDetailPage({ params }: { params: Promise<{
   const { id } = await params;
   const item = await prisma.timelineMilestone.findFirst({ where: { id } });
   if (!item) notFound();
+  const siblings = await prisma.timelineMilestone.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { year: "desc" }, { createdAt: "desc" }],
+  });
+  const index = siblings.findIndex((entry) => entry.id === id);
+  const prev = index > 0 ? siblings[index - 1] : null;
+  const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : null;
+  const related = siblings.filter((entry) => entry.id !== id && entry.kind === item.kind).slice(0, 3).map((entry) => ({ href: `/timeline/${entry.id}`, title: entry.title, note: entry.year }));
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <article className="mx-auto max-w-3xl px-6 py-16">
@@ -28,6 +37,13 @@ export default async function TimelineDetailPage({ params }: { params: Promise<{
             <MarkdownRenderer>{item.detail}</MarkdownRenderer>
           </div>
         </div>
+        <ContinueReading
+          prev={prev ? { href: `/timeline/${prev.id}`, title: prev.title, note: prev.year } : null}
+          next={next ? { href: `/timeline/${next.id}`, title: next.title, note: next.year } : null}
+          related={related}
+          listHref="/timeline"
+          listLabel="返回时间线"
+        />
       </article>
     </main>
   );
