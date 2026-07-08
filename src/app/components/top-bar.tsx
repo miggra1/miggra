@@ -19,8 +19,8 @@ export function TopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+    <header className="sticky top-0 z-40 w-full max-w-[100vw] overflow-hidden border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl backdrop-saturate-150">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 md:px-6">
         <Link href="/" className="text-sm font-medium tracking-tight">Miggra</Link>
 
         {/* Desktop */}
@@ -40,7 +40,7 @@ export function TopBar() {
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="px-2 py-1.5 text-[15px] text-[var(--fg-secondary)] rounded-md transition hover:text-[var(--fg)] hover:bg-[var(--card)]"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[15px] text-[var(--fg-secondary)] transition hover:text-[var(--fg)] hover:bg-[var(--card-strong)]"
             aria-label="菜单"
           >
             {menuOpen ? "✕" : "☰"}
@@ -50,14 +50,14 @@ export function TopBar() {
 
       {/* Mobile dropdown */}
       {menuOpen && (
-        <nav className="md:hidden border-t border-[var(--border)] bg-[var(--bg)] px-6 py-3">
+        <nav className="md:hidden border-t border-[var(--border)] bg-[var(--bg)] px-4 py-3 shadow-2xl shadow-black/20">
           <div className="grid grid-cols-2 gap-2">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className="px-3 py-2 text-sm text-[var(--fg-secondary)] rounded-md transition hover:text-[var(--fg)] hover:bg-[var(--card)]"
+                className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2.5 text-sm text-[var(--fg-secondary)] transition hover:text-[var(--fg)] hover:bg-[var(--card-strong)]"
               >
                 {link.label}
               </Link>
@@ -73,7 +73,7 @@ function SearchTrigger() {
   return (
     <button
       onClick={() => window.dispatchEvent(new CustomEvent("miggra:search"))}
-      className="px-3 py-1.5 text-[13px] text-[var(--subtle)] rounded-md transition hover:text-[var(--fg)] hover:bg-[var(--card)] flex items-center gap-1.5"
+      className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-[var(--subtle)] transition hover:text-[var(--fg)] hover:bg-[var(--card)] md:rounded-md md:px-3 md:py-1.5"
       title="搜索 (⌘K)"
     >
       <span>搜索</span>

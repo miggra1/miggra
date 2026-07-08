@@ -80,46 +80,55 @@ export async function HomePage() {
   return (
     <>
       {dbError || modulesDbError ? <DbErrorBanner /> : null}
-      <main className="relative min-h-screen overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
+      <main className="relative min-h-screen w-full max-w-[100vw] overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.28),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.18),transparent_28%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.14),transparent_30%)] opacity-80" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] opacity-20" />
 
-      <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 lg:px-10">
+      <section className="relative mx-auto flex min-h-[calc(100svh-56px)] w-full max-w-[100vw] flex-col justify-start overflow-hidden px-5 pb-12 pt-14 sm:max-w-6xl sm:px-6 sm:py-16 lg:min-h-screen lg:justify-center lg:px-10">
         {/* ── Hero ── */}
-        <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--muted)] backdrop-blur-xl">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+          <div className="min-w-0 space-y-7 sm:space-y-8">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-xs text-[var(--muted)] backdrop-blur-xl sm:px-4 sm:text-sm">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
               一个安静但有光的地方
             </div>
 
-            <div className="space-y-5">
-              <p className="text-sm uppercase tracking-[0.35em] text-[var(--subtle)]">Miggra Journal</p>
-              <h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-balance sm:text-6xl lg:text-7xl">
-                把日常、想法和情绪，放进一个很安静但很有光的地方。
+            <div className="min-w-0 space-y-4 sm:space-y-5">
+              <p className="text-xs uppercase tracking-[0.32em] text-[var(--subtle)] sm:text-sm sm:tracking-[0.35em]">Miggra Journal</p>
+              <h1 className="max-w-full text-[2.55rem] font-semibold leading-[1.14] tracking-normal sm:max-w-4xl sm:text-6xl sm:leading-tight sm:tracking-tight sm:text-balance lg:text-7xl">
+                <span className="block sm:hidden">
+                  把日常、想法
+                  <br />
+                  和情绪，放进
+                  <br />
+                  一个很安静
+                  <br />
+                  但很有光的地方。
+                </span>
+                <span className="hidden sm:inline">把日常、想法和情绪，放进一个很安静但很有光的地方。</span>
               </h1>
-              <p className="max-w-2xl text-base leading-8 text-[var(--muted)] sm:text-lg">
+              <p className="max-w-[20rem] text-[15px] leading-7 text-[var(--muted)] [word-break:break-all] sm:max-w-2xl sm:text-lg sm:leading-8 sm:[word-break:normal]">
                 这里没有算法，没有打扰。只有慢慢生长的文字、灵感和生活碎片。
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               <WriteButton />
-              <a href="#notes" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
+              <a href="#notes" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)] sm:px-6">
                 查看碎碎念
               </a>
-              <Link href="/now" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)]">
+              <Link href="/now" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)] sm:px-6">
                 看看 Now
               </Link>
             </div>
           </div>
 
           {/* ── Hero 右侧：写作状态 + 随机一句 ── */}
-          <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl">
+          <div className="w-full min-w-0 overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:rounded-[2rem] sm:p-6">
             <div className="space-y-6">
               <div>
                 <p className="text-sm text-[var(--subtle)]">当前状态</p>
-                <p className={`mt-2 text-2xl font-semibold ${
+                <p className={`mt-2 text-xl font-semibold leading-8 [word-break:break-all] sm:text-2xl sm:[word-break:normal] ${
                   status.tone === "fresh" ? "text-emerald-400" :
                   status.tone === "warm" ? "text-[var(--fg)]" :
                   "text-[var(--muted)]"
@@ -133,10 +142,10 @@ export async function HomePage() {
                 )}
               </div>
 
-              <div className="rounded-3xl bg-[linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-5">
+              <div className="rounded-2xl bg-[linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-4 sm:rounded-3xl sm:p-5">
                 <p className="text-sm text-[var(--subtle)]">随机一句</p>
                 {random ? (
-                  <a href={`/notes/${random.id}`} className="block mt-3 text-lg leading-8 text-[var(--fg)] hover:text-[var(--accent)] transition">
+                  <a href={`/notes/${random.id}`} className="mt-3 block text-base leading-8 text-[var(--fg)] transition [word-break:break-all] hover:text-[var(--accent)] sm:text-lg sm:[word-break:normal]">
                     {random.text.length > 80 ? random.text.slice(0, 80) + "…" : random.text}
                   </a>
                 ) : (

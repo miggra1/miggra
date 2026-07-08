@@ -53,7 +53,7 @@ export function WriteButton() {
     <>
       <button
         onClick={handleClick}
-        className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90"
+        className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90 sm:px-6"
       >
         写点东西
       </button>
