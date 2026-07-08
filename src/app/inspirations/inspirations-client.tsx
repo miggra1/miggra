@@ -3,8 +3,19 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { sectionIdentity } from "@/lib/section-identity";
 
-type Item = { title: string; detail: string; meta?: string; status?: string; href?: string; pinned?: boolean; id?: string; };
+type Item = {
+  title: string;
+  detail: string;
+  meta?: string;
+  status?: string;
+  href?: string;
+  pinned?: boolean;
+  id?: string;
+};
+
+const tone = sectionIdentity.inspiration;
 
 export function InspirationsClient({ items }: { items: Item[] }) {
   const [query, setQuery] = useState("");
@@ -22,11 +33,18 @@ export function InspirationsClient({ items }: { items: Item[] }) {
 
   return (
     <div>
-      <div className="flex gap-3 mb-8">
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="搜索灵感..."
-          className="flex-1 max-w-sm rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm outline-none placeholder:text-[var(--subtle)]" />
-        <select value={tag} onChange={(e) => setTag(e.target.value)}
-          className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)] outline-none">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索灵感..."
+          className={`w-full rounded-full border bg-[var(--card)] px-5 py-3 text-sm outline-none placeholder:text-[var(--subtle)] sm:max-w-sm ${tone.borderClass} focus:border-pink-300/45`}
+        />
+        <select
+          value={tag}
+          onChange={(e) => setTag(e.target.value)}
+          className={`rounded-full border bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)] outline-none ${tone.borderClass}`}
+        >
           <option value="ALL">全部</option>
           {tags.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
@@ -36,13 +54,13 @@ export function InspirationsClient({ items }: { items: Item[] }) {
         {filtered.map((item, i) => {
           const key = item.id ?? `${item.title}-${i}`;
           const content = (
-            <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 card-interactive animate-in" style={{ animationDelay: `${i * 50}ms` }}>
-              <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">{item.meta ?? "灵感"}</p>
+            <div className={`rounded-[1.5rem] border bg-[var(--card)] p-6 card-interactive animate-in ${tone.borderClass} ${tone.hoverClass}`} style={{ animationDelay: `${i * 50}ms` }}>
+              <p className={`text-xs uppercase tracking-[0.2em] ${tone.eyebrowClass}`}>{item.meta ?? "灵感"}</p>
               <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
               <div className="mt-3 line-clamp-3">
-              <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
-            </div>
-              {item.pinned && <span className="inline-block mt-3 rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted)]">置顶</span>}
+                <MarkdownRenderer preview>{item.detail}</MarkdownRenderer>
+              </div>
+              {item.pinned ? <span className={`mt-3 inline-block rounded-full border px-3 py-1 text-sm ${tone.badgeClass}`}>置顶</span> : null}
             </div>
           );
           return item.href ? <Link key={key} href={item.href}>{content}</Link> : <div key={key}>{content}</div>;

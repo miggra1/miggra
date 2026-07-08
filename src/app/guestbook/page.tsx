@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { GuestbookForm } from "./guestbook-form";
+import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs"; export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "留言板", description: "留下一个脚印" };
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "留言板", description: "留下一枚轻轻的脚印" };
 
 export default async function GuestbookPage({
   searchParams,
@@ -32,7 +34,7 @@ export default async function GuestbookPage({
         <header className="mb-12">
           <p className="text-sm uppercase tracking-[0.3em] text-[var(--amber)]">Guestbook</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">公开留言板</h1>
-          <p className="mt-3 text-[var(--muted)]">留下一个简短的问候、感想或者路过的脚印。</p>
+          <p className="mt-3 text-[var(--muted)]">留下一句简短的问候、感想，或者路过的脚印。</p>
         </header>
 
         <GuestbookForm />
@@ -46,9 +48,9 @@ export default async function GuestbookPage({
               </div>
               <p className="mt-4 whitespace-pre-wrap leading-8 text-[var(--muted)]">{entry.message}</p>
               {entry.reply ? (
-                <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-5 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--subtle)]">站长回复</p>
-                  <p className="mt-2 whitespace-pre-wrap leading-7 text-[var(--fg)]">{entry.reply}</p>
+                <div className="mt-5 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-5 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
+                  <p className="text-xs uppercase tracking-[0.2em] text-amber-100/80">站长回复</p>
+                  <p className="mt-2 whitespace-pre-wrap leading-7 text-amber-50">{entry.reply}</p>
                 </div>
               ) : null}
             </article>
@@ -58,17 +60,17 @@ export default async function GuestbookPage({
         {totalPages > 1 && (
           <nav className="mt-8 flex items-center justify-center gap-4">
             {page > 1 ? (
-              <a href={`?page=${page - 1}`} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
+              <Link href={`?page=${page - 1}`} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
                 上一页
-              </a>
+              </Link>
             ) : (
               <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] opacity-40">上一页</span>
             )}
             <span className="text-sm text-[var(--subtle)]">{page} / {totalPages}</span>
             {page < totalPages ? (
-              <a href={`?page=${page + 1}`} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
+              <Link href={`?page=${page + 1}`} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--card-strong)]">
                 下一页
-              </a>
+              </Link>
             ) : (
               <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] opacity-40">下一页</span>
             )}

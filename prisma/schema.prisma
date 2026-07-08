@@ -37,6 +37,7 @@ model Note {
   title      String
   text       String     @db.Text
   tag        String     @default("随想")
+  mood       String     @default("记录")
   status     NoteStatus @default(PUBLISHED)
   pinned     Boolean    @default(false)
   coverImage  String?    // 封面图 URL

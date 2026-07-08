@@ -3,6 +3,7 @@ import { getPublishedNoteSafe, listNotesSafe } from "@/lib/notes";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 import { ContinueReading } from "@/app/components/continue-reading";
+import { getMoodMeta, moodFor } from "@/lib/note-mood";
 
 export const revalidate = 60; export const runtime = "nodejs";
 
@@ -22,6 +23,7 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
     .map((n) => ({ href: `/notes/${n.id}`, title: n.title, note: n.tag }));
 
   const readingTime = Math.max(1, Math.ceil(note.text.length / 400));
+  const mood = getMoodMeta(moodFor(note));
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
@@ -35,6 +37,10 @@ export default async function NoteDetailPage({ params }: { params: Promise<{ id:
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{note.title}</h1>
           <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--muted)]">
             <span className="rounded-full border border-[var(--border)] px-3 py-1">{note.tag}</span>
+            <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 ${mood.borderClass} ${mood.softClass} ${mood.textClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${mood.dotClass}`} />
+              {mood.label}
+            </span>
             <span className="rounded-full border border-[var(--border)] px-3 py-1">{new Date(note.createdAt).toLocaleString("zh-CN")}</span>
             <span className="rounded-full border border-[var(--border)] px-3 py-1">{readingTime} 分钟阅读</span>
             {note.pinned ? <span className="rounded-full border border-amber-300/30 px-3 py-1 text-amber-100">置顶</span> : null}

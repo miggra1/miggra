@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { InspirationsClient } from "./inspirations-client";
 import { listContentItemsSafe } from "@/lib/content";
 import { fallbackInspirations } from "@/lib/site-data";
-import { InspirationsClient } from "./inspirations-client";
 
-export const revalidate = 60; export const runtime = "nodejs";
+export const revalidate = 60;
+export const runtime = "nodejs";
 export const metadata: Metadata = { title: "灵感", description: "点子、备忘和灵感碎片" };
 
 export default async function InspirationsPage() {
@@ -16,7 +17,7 @@ export default async function InspirationsPage() {
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
       <div className="mx-auto max-w-5xl px-6 py-16">
         <header className="mb-12">
-          <p className="text-sm uppercase tracking-[0.3em] text-[var(--pink)]">Inspiration</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-pink-300">Inspiration</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">灵感墙</h1>
           <p className="mt-3 text-[var(--muted)]">把脑子里突然冒出来的想法先放进来，之后再慢慢整理。</p>
         </header>

@@ -9,6 +9,7 @@ export type NoteInput = {
   title: string;
   text: string;
   tag?: string;
+  mood?: string;
   status?: NoteStatus;
   pinned?: boolean;
   coverImage?: string | null;
@@ -92,6 +93,7 @@ export async function createNote(input: NoteInput) {
       title: input.title.trim(),
       text: input.text.trim(),
       tag: input.tag?.trim() || "随想",
+      mood: input.mood?.trim() || "记录",
       status: input.status ?? "PUBLISHED",
       pinned: input.pinned ?? false,
       coverImage: input.coverImage?.trim() || null,
@@ -108,6 +110,7 @@ export async function updateNote(id: string, input: NoteInput) {
         title: input.title.trim(),
         text: input.text.trim(),
         tag: input.tag?.trim() || "随想",
+        mood: input.mood?.trim() || "记录",
         status: input.status,
         pinned: input.pinned,
         coverImage: input.coverImage?.trim() ?? null,

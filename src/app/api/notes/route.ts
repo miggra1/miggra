@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   const title = rawTitle.trim();
   const text = body.text.trim();
   const tag = typeof body.tag === "string" ? body.tag : undefined;
+  const mood = typeof body.mood === "string" ? body.mood : undefined;
   const pinned = Boolean(body.pinned);
   const status: "DRAFT" | "PUBLISHED" | "SCHEDULED" = autosave
     ? "DRAFT"
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     if (!text) {
       return NextResponse.json({ error: "空内容不会创建服务端草稿。" }, { status: 400 });
     }
-    const note = await createNote({ title: title || "未命名草稿", text, tag, pinned, status: "DRAFT", coverImage, scheduledAt: null });
+    const note = await createNote({ title: title || "未命名草稿", text, tag, mood, pinned, status: "DRAFT", coverImage, scheduledAt: null });
     return NextResponse.json({ note }, { status: 201 });
   }
 
@@ -58,6 +59,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "定时发布需要指定发布时间。" }, { status: 400 });
   }
 
-  const note = await createNote({ title, text, tag, pinned, status, coverImage, scheduledAt });
+  const note = await createNote({ title, text, tag, mood, pinned, status, coverImage, scheduledAt });
   return NextResponse.json({ note }, { status: 201 });
 }

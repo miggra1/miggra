@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { WriteButton } from "./components/write-button";
+import { listContentItemsSafe } from "@/lib/content";
+import { moodFor, NOTE_MOODS } from "@/lib/note-mood";
 import { getHomePageData, getOnThisDayNotes } from "@/lib/notes";
 import { listHomePhotos } from "@/lib/photos";
-import { listContentItemsSafe } from "@/lib/content";
-import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { sectionIdentity } from "@/lib/section-identity";
 
 function daysAgo(date: Date): number {
   const now = new Date();
@@ -18,7 +20,7 @@ function writingStatus(latestNoteAt: Date | null, publishedCount: number): { tex
   if (days === 0) return { text: "今天写过了", tone: "fresh" };
   if (days === 1) return { text: "昨天刚写过", tone: "warm" };
   if (days <= 7) return { text: `上次落笔是 ${days} 天前`, tone: "warm" };
-  return { text: `上一次落笔，已经过去了 ${days} 天`, tone: "quiet" };
+  return { text: `上一支笔，已经放下 ${days} 天`, tone: "quiet" };
 }
 
 function yearLabel(date: Date): string {
@@ -45,12 +47,49 @@ export async function HomePage() {
   const random = published.length ? published[new Date().getDate() % published.length] : null;
   const status = writingStatus(stats.latestNoteAt, published.length);
   const heroPhoto = photos[0] ?? null;
+  const recentForMood = published.slice(0, 12);
+  const moodSpectrum = NOTE_MOODS.map((mood) => ({
+    ...mood,
+    count: recentForMood.filter((note) => moodFor(note) === mood.value).length,
+  })).filter((mood) => mood.count > 0);
 
   const lifeModules = [
-    { label: "Now", title: "当前状态", description: "最近在做什么、想什么、靠近什么。", href: "/now", count: now.items.length, latest: now.items[0]?.title },
-    { label: "Wish", title: "愿望清单", description: "想完成、想体验、想慢慢抵达的事。", href: "/wish", count: wish.items.length, latest: wish.items[0]?.title },
-    { label: "Reading", title: "书单", description: "在读、读过、想读的书和一点想法。", href: "/reading", count: reading.items.length, latest: reading.items[0]?.title },
-    { label: "Ideas", title: "灵感墙", description: "还没长成文章的小点子和备忘。", href: "/inspirations", count: inspirations.items.length, latest: inspirations.items[0]?.title },
+    {
+      label: "Now",
+      title: "当前状态",
+      description: "最近在做什么、想什么、靠近什么。",
+      href: "/now",
+      count: now.items.length,
+      latest: now.items[0]?.title,
+      style: sectionIdentity.now,
+    },
+    {
+      label: "愿望",
+      title: "愿望清单",
+      description: "想完成、想体验、想慢慢抵达的事。",
+      href: "/wish",
+      count: wish.items.length,
+      latest: wish.items[0]?.title,
+      style: sectionIdentity.wish,
+    },
+    {
+      label: "书单",
+      title: "书单",
+      description: "在读、读过、想读的书和一点想法。",
+      href: "/reading",
+      count: reading.items.length,
+      latest: reading.items[0]?.title,
+      style: sectionIdentity.reading,
+    },
+    {
+      label: "灵感",
+      title: "灵感墙",
+      description: "还没长成文章的小点子和备忘。",
+      href: "/inspirations",
+      count: inspirations.items.length,
+      latest: inspirations.items[0]?.title,
+      style: sectionIdentity.inspiration,
+    },
   ];
 
   return (
@@ -120,6 +159,28 @@ export async function HomePage() {
                 </Link>
               ) : null}
             </div>
+
+            {moodSpectrum.length > 0 ? (
+              <div className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 backdrop-blur-xl">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-[var(--subtle)]">最近的情绪色谱</p>
+                  <span className="text-xs text-[var(--subtle)]">近 {recentForMood.length} 篇</span>
+                </div>
+                <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-white/10">
+                  {moodSpectrum.map((mood) => (
+                    <span key={mood.value} className={mood.barClass} style={{ flexGrow: mood.count }} />
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {moodSpectrum.map((mood) => (
+                    <span key={mood.value} className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${mood.borderClass} ${mood.softClass} ${mood.textClass}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${mood.dotClass}`} />
+                      {mood.label} {mood.count}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -139,6 +200,7 @@ export async function HomePage() {
                 ) : null}
                 <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--subtle)]">
                   <span className="rounded-full border border-[var(--border)] px-3 py-1">{featured.tag}</span>
+                  <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-amber-100">{moodFor(featured)}</span>
                   <time>{new Date(featured.createdAt).toISOString().slice(0, 10)}</time>
                 </div>
                 <h3 className="mt-4 text-2xl font-semibold">{featured.title}</h3>
@@ -161,8 +223,9 @@ export async function HomePage() {
               <div className="grid gap-4 lg:grid-cols-3">
                 {latest.map((note) => (
                   <Link key={note.id} href={`/notes/${note.id}`} className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:bg-[var(--card-strong)]">
-                    <div className="flex items-center justify-between gap-3 text-xs text-[var(--subtle)]">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--subtle)]">
                       <span className="rounded-full border border-[var(--border)] px-3 py-1">{note.tag}</span>
+                      <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-amber-100">{moodFor(note)}</span>
                       <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
                     </div>
                     <h3 className="mt-4 text-xl font-medium">{note.title}</h3>
@@ -204,16 +267,16 @@ export async function HomePage() {
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {lifeModules.map((item) => (
-                  <Link key={item.href} href={item.href} className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:bg-[var(--card-strong)]">
+                  <Link key={item.href} href={item.href} className={`rounded-[1.35rem] border bg-[var(--card)] p-5 transition ${item.style.borderClass} ${item.style.hoverClass}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-[var(--subtle)]">{item.label}</p>
+                        <p className={`text-xs uppercase tracking-[0.22em] ${item.style.eyebrowClass}`}>{item.label}</p>
                         <h3 className="mt-3 text-xl font-medium">{item.title}</h3>
                       </div>
-                      <span className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--subtle)]">{item.count}</span>
+                      <span className={`rounded-full border px-2.5 py-1 text-xs ${item.style.badgeClass}`}>{item.count}</span>
                     </div>
                     <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.description}</p>
-                    {item.latest ? <p className="mt-4 line-clamp-1 text-sm text-[var(--fg)]">最近：{item.latest}</p> : null}
+                    {item.latest ? <p className={`mt-4 line-clamp-1 text-sm ${item.style.textClass}`}>最近：{item.latest}</p> : null}
                   </Link>
                 ))}
               </div>
@@ -243,7 +306,7 @@ export async function HomePage() {
               <Link href="/guestbook" className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
                 <p className="text-xs uppercase tracking-[0.25em] text-[var(--subtle)]">Guestbook</p>
                 <h2 className="mt-3 text-xl font-semibold">留言板</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">如果路过，可以留下一个脚印。</p>
+                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">如果路过，可以留下一枚很轻的脚印。</p>
               </Link>
               <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
                 <p className="text-xs uppercase tracking-[0.25em] text-[var(--subtle)]">Write</p>

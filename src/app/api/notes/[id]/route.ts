@@ -41,6 +41,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     title,
     text,
     tag: typeof body.tag === "string" ? body.tag : undefined,
+    mood: typeof body.mood === "string" ? body.mood : undefined,
     status,
     pinned: Boolean(body.pinned),
     coverImage: typeof body.coverImage === "string" ? body.coverImage : undefined,

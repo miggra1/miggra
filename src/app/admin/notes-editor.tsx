@@ -5,6 +5,7 @@ import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import type { NoteStatus } from "@prisma/client";
 import { MarkdownEditor } from "@/app/components/markdown-editor";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
+import { NOTE_MOODS } from "@/lib/note-mood";
 
 const LEGACY_DRAFT_KEY = "miggra-draft";
 const NEW_DRAFT_KEY = "miggra-draft:new";
@@ -16,6 +17,7 @@ type DraftData = {
   title: string;
   text: string;
   tag: string;
+  mood: string;
   status: string;
   pinned: boolean;
   coverImage: string;
@@ -25,7 +27,7 @@ type DraftData = {
 
 type Props = {
   mode: "new" | "edit";
-  initial?: { id: string; title: string; text: string; tag: string; status: NoteStatus; pinned: boolean; coverImage?: string | null; scheduledAt?: string | null };
+  initial?: { id: string; title: string; text: string; tag: string; mood?: string | null; status: NoteStatus; pinned: boolean; coverImage?: string | null; scheduledAt?: string | null };
 };
 
 function formatSavedAt(value: number) {
@@ -42,6 +44,7 @@ export function NotesEditor({ mode, initial }: Props) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [text, setText] = useState(initial?.text ?? "");
   const [tag, setTag] = useState(initial?.tag ?? "随想");
+  const [mood, setMood] = useState(initial?.mood ?? "记录");
   const [status, setStatus] = useState<NoteStatus>(initial?.status ?? "PUBLISHED");
   const [pinned, setPinned] = useState(initial?.pinned ?? false);
   const [coverImage, setCoverImage] = useState(initial?.coverImage ?? "");
@@ -66,12 +69,13 @@ export function NotesEditor({ mode, initial }: Props) {
     title,
     text,
     tag,
+    mood,
     status,
     pinned,
     coverImage,
     scheduledAt,
     savedAt: Date.now(),
-  }), [coverImage, noteId, pinned, scheduledAt, status, tag, text, title]);
+  }), [coverImage, mood, noteId, pinned, scheduledAt, status, tag, text, title]);
 
   const markDirty = () => {
     setDirty(true);
@@ -101,6 +105,7 @@ export function NotesEditor({ mode, initial }: Props) {
       setTitle(draft.title ?? "");
       setText(draft.text ?? "");
       setTag(draft.tag ?? "随想");
+      setMood(draft.mood ?? "记录");
       if (draft.status) setStatus(draft.status as NoteStatus);
       setPinned(Boolean(draft.pinned));
       setCoverImage(draft.coverImage ?? "");
@@ -149,6 +154,7 @@ export function NotesEditor({ mode, initial }: Props) {
             title,
             text,
             tag,
+            mood,
             status: autosaveStatus,
             pinned,
             coverImage: coverImage || undefined,
@@ -175,7 +181,7 @@ export function NotesEditor({ mode, initial }: Props) {
     }, 2200);
 
     return () => { if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current); };
-  }, [coverImage, createdByAutosave, dirty, draftKey, noteId, pinned, saveLocalDraft, scheduledAt, status, tag, text, title]);
+  }, [coverImage, createdByAutosave, dirty, draftKey, mood, noteId, pinned, saveLocalDraft, scheduledAt, status, tag, text, title]);
 
   const clearDraft = () => {
     localStorage.removeItem(draftKey);
@@ -193,7 +199,7 @@ export function NotesEditor({ mode, initial }: Props) {
       const r = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text, tag, status, pinned, coverImage: coverImage || undefined, scheduledAt: scheduledAt || undefined }),
+        body: JSON.stringify({ title, text, tag, mood, status, pinned, coverImage: coverImage || undefined, scheduledAt: scheduledAt || undefined }),
       });
       if (!r.ok) {
         const data = (await r.json().catch(() => null)) as { error?: string } | null;
@@ -272,6 +278,12 @@ export function NotesEditor({ mode, initial }: Props) {
           <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
             <input value={tag} onChange={(e) => { setTag(e.target.value); markDirty(); }}
               className="input w-28 text-sm" placeholder="标签" />
+            <select value={mood} onChange={(e) => { setMood(e.target.value); markDirty(); }}
+              className="input text-sm">
+              {NOTE_MOODS.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </select>
             <select value={status} onChange={(e) => { setStatus(e.target.value as NoteStatus); markDirty(); }}
               className="input text-sm">
               <option value="PUBLISHED">发布</option>
@@ -306,6 +318,7 @@ export function NotesEditor({ mode, initial }: Props) {
             {tag && (
               <span className="inline-block text-xs text-[var(--subtle)] rounded-full border border-[var(--border)] px-2 py-0.5 mb-4">{tag}</span>
             )}
+            <span className="mb-4 ml-2 inline-block rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 text-xs text-amber-100">{mood}</span>
             {text ? (
               <MarkdownRenderer>{text}</MarkdownRenderer>
             ) : (
