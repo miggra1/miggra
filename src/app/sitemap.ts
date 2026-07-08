@@ -10,15 +10,17 @@ export default async function sitemap() {
   const staticUrls = [
     { url: `${baseUrl}/`, lastModified: now },
     { url: `${baseUrl}/notes`, lastModified: now },
+    { url: `${baseUrl}/photos`, lastModified: now },
     { url: `${baseUrl}/now`, lastModified: now },
     { url: `${baseUrl}/wish`, lastModified: now },
     { url: `${baseUrl}/reading`, lastModified: now },
     { url: `${baseUrl}/inspirations`, lastModified: now },
+    { url: `${baseUrl}/life`, lastModified: now },
     { url: `${baseUrl}/timeline`, lastModified: now },
     { url: `${baseUrl}/guestbook`, lastModified: now },
+    { url: `${baseUrl}/about`, lastModified: now },
   ];
 
-  // 动态添加已发布的页面
   let pageUrls: Array<{ url: string; lastModified: Date }> = [];
   try {
     const pages = await getPublishedPages();
