@@ -14,12 +14,6 @@ export function SiteFooter() {
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               <Link href="/notes" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">碎碎念</Link>
               <Link href="/photos" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">照片墙</Link>
-              <Link href="/now" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">Now</Link>
-              <Link href="/wish" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">愿望</Link>
-              <Link href="/reading" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">书单</Link>
-              <Link href="/inspirations" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">灵感</Link>
-              <Link href="/life" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">生活切片</Link>
-              <Link href="/about" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">关于</Link>
               <Link href="/guestbook" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">留言板</Link>
               <Link href="/timeline" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">时间线</Link>
             </div>
