@@ -155,7 +155,7 @@ export async function HomePage() {
               {random ? (
                 <Link href={`/notes/${random.id}`} className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:bg-[var(--card-strong)]">
                   <p className="text-sm text-[var(--subtle)]">随机一句</p>
-                  <p className="mt-3 line-clamp-4 text-sm leading-7 text-[var(--fg)]">{random.text.length > 110 ? `${random.text.slice(0, 110)}...` : random.text}</p>
+                  <p className="mt-3 line-clamp-4 break-words text-sm leading-7 text-[var(--fg)]">{random.text.length > 110 ? `${random.text.slice(0, 110)}...` : random.text}</p>
                 </Link>
               ) : null}
             </div>

@@ -40,7 +40,7 @@ export default async function NotesPage({
 
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)] ambient-bg">
-      <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16 lg:px-10">
+      <div className="mx-auto w-full max-w-6xl overflow-hidden px-5 py-14 sm:px-6 sm:py-16 lg:px-10">
         <header className="mb-10 grid gap-6 lg:grid-cols-[1fr_0.8fr] lg:items-end">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-[var(--accent)]">Notes</p>
@@ -99,10 +99,10 @@ export default async function NotesPage({
         )}
 
         {leadNote ? (
-          <div className="grid gap-4 lg:grid-cols-[1.16fr_0.84fr]">
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[1.16fr_0.84fr]">
             <Link
               href={`/notes/${leadNote.id}`}
-              className="group min-h-[26rem] rounded-[1.75rem] border border-[var(--accent)]/35 bg-[var(--card)] p-5 shadow-2xl shadow-black/20 transition hover:-translate-y-0.5 hover:bg-[var(--card-strong)] sm:p-6"
+              className="group min-w-0 overflow-hidden rounded-[1.75rem] border border-[var(--accent)]/35 bg-[var(--card)] p-5 shadow-2xl shadow-black/20 transition hover:-translate-y-0.5 hover:bg-[var(--card-strong)] sm:min-h-[26rem] sm:p-6"
             >
               {leadNote.coverImage ? (
                 <div className="mb-5 overflow-hidden rounded-[1.35rem]">
@@ -114,15 +114,15 @@ export default async function NotesPage({
                 </div>
               )}
               <NoteMeta note={leadNote} large />
-              <h2 className="mt-5 text-3xl font-semibold leading-tight sm:text-4xl">{leadNote.title}</h2>
+              <h2 className="mt-5 max-w-full break-words text-2xl font-semibold leading-tight sm:text-4xl">{leadNote.title}</h2>
               <div className="mt-5 line-clamp-4 text-base leading-8">
                 <MarkdownRenderer preview>{leadNote.text}</MarkdownRenderer>
               </div>
             </Link>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              {restNotes.slice(0, 2).map((note, i) => (
-                <NoteCard key={note.id} note={note} index={i} compact />
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              {restNotes.slice(0, 2).map((note) => (
+                <NoteCard key={note.id} note={note} compact />
               ))}
             </div>
           </div>
@@ -133,9 +133,9 @@ export default async function NotesPage({
         )}
 
         {restNotes.length > 2 ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {restNotes.slice(2).map((note, i) => (
-              <NoteCard key={note.id} note={note} index={i + 2} />
+          <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
+            {restNotes.slice(2).map((note) => (
+              <NoteCard key={note.id} note={note} />
             ))}
           </div>
         ) : null}
@@ -181,18 +181,15 @@ function NoteMeta({ note, large = false }: { note: { tag: string; createdAt: Dat
 
 function NoteCard({
   note,
-  index,
   compact = false,
 }: {
   note: { id: string; tag: string; createdAt: Date; title: string; text: string; coverImage: string | null };
-  index: number;
   compact?: boolean;
 }) {
   return (
     <Link
       href={`/notes/${note.id}`}
-      className="group rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:bg-[var(--card-strong)] animate-in"
-      style={{ animationDelay: `${index * 55}ms` }}
+      className="group min-w-0 overflow-hidden rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:bg-[var(--card-strong)]"
     >
       {note.coverImage ? (
         <div className="mb-4 overflow-hidden rounded-2xl">
@@ -200,7 +197,7 @@ function NoteCard({
         </div>
       ) : null}
       <NoteMeta note={note} />
-      <h2 className={`mt-4 font-semibold leading-snug ${compact ? "text-lg" : "text-xl"}`}>{note.title}</h2>
+      <h2 className={`mt-4 break-words font-semibold leading-snug ${compact ? "text-lg" : "text-xl"}`}>{note.title}</h2>
       <div className={`mt-3 ${compact ? "line-clamp-3" : "line-clamp-2"}`}>
         <MarkdownRenderer preview>{note.text}</MarkdownRenderer>
       </div>
