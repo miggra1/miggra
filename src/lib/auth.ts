@@ -34,12 +34,27 @@ export function getAdminPassword() {
 }
 
 function getSessionSecret() {
-  const secret = process.env.ADMIN_SESSION_SECRET;
-  if (isProduction()) {
-    if (!secret) throw new Error("ADMIN_SESSION_SECRET is required in production.");
-    if (secret.length < 32) throw new Error("ADMIN_SESSION_SECRET must be at least 32 characters in production.");
+  const explicitSecret = process.env.ADMIN_SESSION_SECRET?.trim();
+  if (explicitSecret) {
+    if (isProduction() && explicitSecret.length < 32) {
+      throw new Error("ADMIN_SESSION_SECRET must be at least 32 characters in production.");
+    }
+    return explicitSecret;
   }
-  return secret ?? `dev-session-secret:${getAdminPassword()}`;
+
+  const deploymentSecretSource = process.env.DATABASE_URL?.trim() || process.env.CRON_SECRET?.trim();
+  if (deploymentSecretSource) {
+    return crypto
+      .createHash("sha256")
+      .update("miggra-admin-session:v1\0")
+      .update(deploymentSecretSource)
+      .digest("hex");
+  }
+
+  if (isProduction()) {
+    throw new Error("A session secret source is required in production.");
+  }
+  return `dev-session-secret:${getAdminPassword()}`;
 }
 
 function signPayload(payload: string) {
