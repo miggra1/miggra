@@ -36,10 +36,20 @@ export function getAdminPassword() {
 function getSessionSecret() {
   const explicitSecret = process.env.ADMIN_SESSION_SECRET?.trim();
   if (explicitSecret) {
-    if (isProduction() && explicitSecret.length < 32) {
-      throw new Error("ADMIN_SESSION_SECRET must be at least 32 characters in production.");
+    if (!isProduction() || explicitSecret.length >= 32) {
+      return explicitSecret;
     }
-    return explicitSecret;
+
+    // Keep older deployments usable when a short session secret was saved.
+    // Combining it with the required admin password avoids using that short
+    // value as the HMAC key directly.
+    return crypto
+      .createHash("sha256")
+      .update("miggra-admin-session:legacy-secret:v1\0")
+      .update(explicitSecret)
+      .update("\0")
+      .update(getAdminPassword())
+      .digest("hex");
   }
 
   const deploymentSecretSource = process.env.DATABASE_URL?.trim() || process.env.CRON_SECRET?.trim();
@@ -51,10 +61,12 @@ function getSessionSecret() {
       .digest("hex");
   }
 
-  if (isProduction()) {
-    throw new Error("A session secret source is required in production.");
-  }
-  return `dev-session-secret:${getAdminPassword()}`;
+  const passwordFallback = getAdminPassword();
+  return crypto
+    .createHash("sha256")
+    .update(isProduction() ? "miggra-admin-session:password-fallback:v1\0" : "dev-session-secret:v1\0")
+    .update(passwordFallback)
+    .digest("hex");
 }
 
 function signPayload(payload: string) {

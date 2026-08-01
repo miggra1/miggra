@@ -56,6 +56,20 @@ function setAdminCookie(response: NextResponse, session: string) {
   return response;
 }
 
+function configurationError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("ADMIN_PASSWORD")) {
+    return NextResponse.json(
+      { error: "部署环境缺少 ADMIN_PASSWORD，请在平台环境变量中配置后重新部署。" },
+      { status: 500 },
+    );
+  }
+  return NextResponse.json(
+    { error: "登录服务暂时不可用，请查看部署日志后重试。" },
+    { status: 500 },
+  );
+}
+
 export async function GET(request: Request) {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -64,8 +78,8 @@ export async function GET(request: Request) {
   try {
     const response = NextResponse.redirect(new URL("/admin", request.url), 303);
     return setAdminCookie(response, createAdminSession());
-  } catch {
-    return NextResponse.json({ error: "本地登录配置不完整。" }, { status: 500 });
+  } catch (error) {
+    return configurationError(error);
   }
 }
 
@@ -85,8 +99,8 @@ export async function POST(request: Request) {
   let ok = false;
   try {
     ok = isPasswordValid(body.password);
-  } catch {
-    return NextResponse.json({ error: "后台登录配置不完整。" }, { status: 500 });
+  } catch (error) {
+    return configurationError(error);
   }
 
   if (!ok) {
@@ -99,8 +113,8 @@ export async function POST(request: Request) {
   let session = "";
   try {
     session = createAdminSession();
-  } catch {
-    return NextResponse.json({ error: "后台登录配置不完整。" }, { status: 500 });
+  } catch (error) {
+    return configurationError(error);
   }
 
   return setAdminCookie(NextResponse.json({ ok: true }), session);
