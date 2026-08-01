@@ -1,105 +1,87 @@
-import { listNotesSafe, listRecentEditableNotes, listScheduledNotes } from "@/lib/notes";
-import { computeStatsFromNotes } from "@/lib/stats";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { computeStatsFromNotes } from "@/lib/stats";
+import { listNotesSafe, listRecentEditableNotes, listScheduledNotes } from "@/lib/notes";
+import { listHomePhotos } from "@/lib/photos";
 
-const sections = [
-  { href: "/admin/notes/new", label: "写碎碎念", desc: "记录想法和情绪", color: "#3b82f6", icon: "✎" },
-  { href: "/admin/now/new", label: "更新 Now", desc: "此刻在做什么", color: "#22c55e", icon: "▸" },
-  { href: "/admin/wish/new", label: "许个愿望", desc: "想去的地方、想做的事", color: "#8b5cf6", icon: "✦" },
-  { href: "/admin/reading/new", label: "加一本书", desc: "在读、读过、想读", color: "#f59e0b", icon: "▣" },
-  { href: "/admin/inspirations/new", label: "记灵感", desc: "先放进待整理收集箱", color: "#ec4899", icon: "◆" },
-  { href: "/admin/timeline/new", label: "加节点", desc: "人生和站点的变化", color: "#06b6d4", icon: "◷" },
+const quickActions = [
+  { href: "/admin/notes/new", label: "写一篇记录", desc: "从一个标题或一句话开始", icon: "✎" },
+  { href: "/admin/inspirations/new", label: "捕捉灵感", desc: "先放进来，稍后再整理", icon: "✦" },
+  { href: "/admin/photos/new", label: "添加影像", desc: "保存今天看见的光", icon: "▧" },
 ];
 
 export default async function AdminDashboard() {
   const { notes } = await listNotesSafe();
   const stats = computeStatsFromNotes(notes);
+  const [recentEditable, scheduled, photos] = await Promise.all([
+    listRecentEditableNotes().catch(() => notes),
+    listScheduledNotes().catch(() => notes.filter((note) => note.status === "SCHEDULED")),
+    listHomePhotos(1).catch(() => []),
+  ]);
+  const recentDrafts = recentEditable.filter((note) => note.status === "DRAFT").slice(0, 4);
+  const recentPublished = recentEditable.filter((note) => note.status === "PUBLISHED").slice(0, 4);
+  const recent = [...recentDrafts, ...recentPublished].slice(0, 6);
+  const continueNote = recentDrafts[0] ?? recentEditable[0] ?? null;
 
-  // 最近草稿 & 定时发布
-  const recentEditable = await listRecentEditableNotes().catch(() => notes);
-  const scheduled = await listScheduledNotes().catch(() => notes.filter((n) => n.status === "SCHEDULED"));
-  const recentDrafts = recentEditable.filter((n) => n.status === "DRAFT").slice(0, 4);
-  const recentPublished = recentEditable.filter((n) => n.status === "PUBLISHED").slice(0, 4);
-  const all = [...recentDrafts, ...recentPublished].slice(0, 6);
-
-  // 获取各专区计数
   let contentCounts: Record<string, number> = {};
   try {
     const items = await prisma.contentItem.findMany({ select: { section: true } });
-    contentCounts = items.reduce<Record<string, number>>((acc, i) => { acc[i.section] = (acc[i.section] || 0) + 1; return acc; }, {});
-  } catch { /* DB may be asleep */ }
+    contentCounts = items.reduce<Record<string, number>>((acc, item) => { acc[item.section] = (acc[item.section] || 0) + 1; return acc; }, {});
+  } catch { /* Database may be asleep. */ }
+
+  const heroImage = photos[0]?.url ?? "/uploads/forest-lake.jpg";
 
   return (
-    <div className="px-6 py-10 max-w-5xl animate-in">
-      {/* ── 问候 ── */}
-      <div className="mb-10">
-        <p className="text-[11px] uppercase tracking-widest text-[var(--muted)]">创作空间</p>
-        <h1 className="text-[32px] font-semibold mt-2 tracking-tight">今天想写点什么？</h1>
-      </div>
+    <div className="studio-dashboard">
+      <header className="studio-page-head">
+        <div><p>Creative dashboard</p><h1>创作空间</h1></div>
+        <Link href="/admin/notes/new" className="studio-head-action">新建记录 <span>↗</span></Link>
+      </header>
 
-      {/* ── 快捷新建 ── */}
-      <section className="mb-10">
-        <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)] mb-4">快速开始</p>
-        <div className="grid gap-3 md:grid-cols-3">
-          {sections.map((s) => (
-            <Link key={s.href} href={s.href}
-              className="flex items-center gap-3 px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--card)] transition hover:bg-[var(--card-strong)] hover:-translate-y-0.5"
-            >
-              <span className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ backgroundColor: `${s.color}15`, color: s.color }}>{s.icon}</span>
-              <div>
-                <p className="text-sm font-semibold">{s.label}</p>
-                <p className="text-[11px] text-[var(--muted)]">{s.desc}</p>
-              </div>
-            </Link>
-          ))}
+      <section className="studio-hero">
+        <img src={heroImage} alt="林间光影" />
+        <div className="studio-hero-shade" />
+        <div className="studio-hero-copy">
+          <p>Keep making, keep noticing.</p>
+          <h2>今天，想留下些什么？</h2>
+          <span>不必完整，也不必正确。先把此刻的感受留在这里。</span>
+          <Link href="/admin/notes/new">开始写作 <b aria-hidden="true">↗</b></Link>
         </div>
+        <div className="studio-hero-status"><i />空间在线</div>
       </section>
 
-      {/* ── 统计 ── */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
-        {[
-          { label: "碎念", value: stats.totalNotes, color: "#3b82f6" },
-          { label: "Now", value: contentCounts["NOW"] ?? 0, color: "#22c55e" },
-          { label: "愿望", value: contentCounts["WISH"] ?? 0, color: "#8b5cf6" },
-          { label: "书单", value: contentCounts["READING"] ?? 0, color: "#f59e0b" },
-          { label: "灵感", value: contentCounts["INSPIRATION"] ?? 0, color: "#ec4899" },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
-            <div className="text-2xl font-semibold" style={{ color: s.color }}>{s.value}</div>
-            <div className="text-[11px] text-[var(--muted)] mt-1 uppercase tracking-wider">{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── 最近编辑 ── */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)]">继续编辑</p>
-          <Link href="/admin/notes" className="text-xs text-[var(--muted)] hover:text-[var(--fg)] transition">全部 →</Link>
+      <section className="studio-dashboard-deck">
+        <div className="studio-quick-grid">
+          {quickActions.map((item) => (
+            <Link key={item.href} href={item.href} className="studio-quick-card">
+              <span>{item.icon}</span><h2>{item.label}</h2><p>{item.desc}</p><b aria-hidden="true">→</b>
+            </Link>
+          ))}
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          {all.length === 0 && scheduled.length === 0 && (
-            <p className="text-sm text-[var(--muted)] col-span-full py-4">还没有内容，点上方按钮开始写吧 ✎</p>
-          )}
+
+        <Link href={continueNote ? `/admin/notes/${continueNote.id}` : "/admin/notes/new"} className="studio-continue-card">
+          <div><p>{continueNote?.status === "DRAFT" ? "Continue draft" : "Recent work"}</p><h2>{continueNote?.title ?? "从第一篇记录开始"}</h2><span>{continueNote ? `上次编辑于 ${new Date(continueNote.updatedAt).toLocaleDateString("zh-CN")}` : "为这个空间留下第一行文字。"}</span></div>
+          <strong>继续编辑 <b aria-hidden="true">→</b></strong>
+        </Link>
+      </section>
+
+      <section className="studio-stats" aria-label="内容统计">
+        <div><strong>{stats.totalNotes}</strong><span>全部记录</span></div>
+        <div><strong>{recentDrafts.length}</strong><span>待完成草稿</span></div>
+        <div><strong>{contentCounts.INSPIRATION ?? 0}</strong><span>灵感收藏</span></div>
+        <div><strong>{contentCounts.READING ?? 0}</strong><span>阅读条目</span></div>
+      </section>
+
+      <section className="studio-recent">
+        <div className="studio-section-head"><div><p>Recent activity</p><h2>继续编辑</h2></div><Link href="/admin/notes">全部记录 ↗</Link></div>
+        <div className="studio-recent-list">
           {scheduled.map((note) => (
-            <Link key={note.id} href={`/admin/notes/${note.id}`}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-purple-400/20 bg-purple-400/5 transition hover:bg-purple-400/10"
-            >
-              <span className="h-2 w-2 rounded-full shrink-0 bg-[var(--purple)]" />
-              <span className="text-sm font-medium truncate flex-1">{note.title}</span>
-              <span className="text-[11px] text-[var(--muted)]">⏳ {note.scheduledAt ? new Date(note.scheduledAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "定时"}</span>
-            </Link>
+            <Link key={note.id} href={`/admin/notes/${note.id}`}><i className="is-scheduled" /><div><h3>{note.title}</h3><p>定时发布 · {note.scheduledAt ? new Date(note.scheduledAt).toLocaleString("zh-CN") : "等待发布"}</p></div><span>→</span></Link>
           ))}
-          {all.map((note) => (
-            <Link key={note.id} href={`/admin/notes/${note.id}`}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--card)] transition hover:bg-[var(--card-strong)]"
-            >
-              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: note.status === "PUBLISHED" ? "var(--green)" : note.status === "SCHEDULED" ? "var(--purple)" : "var(--amber)" }} />
-              <span className="text-sm font-medium truncate flex-1">{note.title}</span>
-              <span className="text-[11px] text-[var(--muted)]">{note.status === "DRAFT" ? `草稿 · ${new Date(note.updatedAt).toLocaleDateString("zh-CN")}` : note.status === "SCHEDULED" ? "⏳ 定时" : "已发布"}</span>
-            </Link>
+          {recent.map((note) => (
+            <Link key={note.id} href={`/admin/notes/${note.id}`}><i className={note.status === "PUBLISHED" ? "is-published" : "is-draft"} /><div><h3>{note.title}</h3><p>{note.status === "DRAFT" ? "草稿" : "已发布"} · {new Date(note.updatedAt).toLocaleDateString("zh-CN")}</p></div><span>→</span></Link>
           ))}
+          {recent.length === 0 && scheduled.length === 0 ? <div className="studio-empty">还没有内容。第一篇作品正等着你。</div> : null}
         </div>
       </section>
     </div>

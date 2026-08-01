@@ -1,69 +1,53 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!password.trim()) {
-      setError("请输入密码");
-      return;
-    }
+    if (!password.trim()) { setError("请输入密码"); return; }
     setError("");
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-
-    if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      setError(data?.error ?? "密码错误");
-      return;
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? "密码错误");
+        return;
+      }
+      window.location.replace("/admin");
+    } catch {
+      setError("无法连接登录服务，请刷新页面后重试。");
+    } finally {
+      setLoading(false);
     }
-
-    window.location.reload();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg)]">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,120,196,0.10),transparent_28%)] opacity-60" />
-
-      <div className="relative w-full max-w-sm mx-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-2xl backdrop-blur-xl animate-in">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--subtle)] mb-2">后台入口</p>
-        <h1 className="text-xl font-semibold mb-1">需要密码</h1>
-        <p className="text-sm text-[var(--muted)] mb-6">请输入管理员密码以进入后台。</p>
-
-        <input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") handleLogin(); }}
-          type="password"
-          placeholder="管理员密码"
-          autoFocus
-          className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm outline-none placeholder:text-[var(--subtle)] focus:border-[var(--accent)] transition"
-        />
-
-        {error && (
-          <p className="mt-3 text-xs text-red-400">{error}</p>
-        )}
-
-        <button
-          type="button"
-          onClick={handleLogin}
-          className="mt-5 w-full rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] transition hover:opacity-90"
-        >
-          进入后台
-        </button>
-
-        <div className="mt-4 flex items-center justify-between text-xs text-[var(--subtle)]">
-          <a href="/" className="hover:text-[var(--fg)] transition">← 回前台</a>
-          <span>Miggra</span>
+    <main className="studio-login">
+      <section className="studio-login-frame">
+        <div className="studio-login-visual"><img src="/uploads/starry-night.jpg" alt="夜色中的山与星空" /><div><p>Private creative space</p><h1>让每一次落笔，<br />都有自己的光。</h1></div></div>
+        <div className="studio-login-form">
+          <Link href="/" className="studio-login-brand"><span className="studio-brand-mark"><i /><i /></span><b>MIGGRA</b></Link>
+          <div className="studio-login-copy"><p>Welcome back</p><h2>进入创作空间</h2><span>这是你的私人工作室。输入密码，继续未完成的作品。</span></div>
+          <label htmlFor="admin-password">访问密码</label>
+          <input id="admin-password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleLogin(); }} type="password" placeholder="输入管理员密码" autoFocus />
+          {error ? <p className="studio-login-error">{error}</p> : null}
+          <button type="button" onClick={handleLogin} disabled={loading}>{loading ? "验证中…" : "进入空间"}<span>↗</span></button>
+          {process.env.NODE_ENV !== "production" ? <a href="/api/auth/login" className="studio-login-dev">本地开发直接进入 <span>→</span></a> : null}
+          <p className="studio-login-hint">本地开发请使用 <code>.env.local</code> 中的 <code>ADMIN_PASSWORD</code>。</p>
+          <Link href="/" className="studio-login-back">← 返回前台</Link>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

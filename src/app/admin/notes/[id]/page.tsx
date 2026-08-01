@@ -8,7 +8,7 @@ export default async function EditNotePage({ params }: { params: Promise<{ id: s
   if (!note) notFound();
 
   return (
-    <div className="px-8 py-10">
+    <div className="studio-editor-page">
       <NotesEditor mode="edit" initial={{ id: note.id, title: note.title, text: note.text, tag: note.tag, mood: note.mood, status: note.status, pinned: note.pinned, coverImage: note.coverImage, scheduledAt: note.scheduledAt?.toISOString() ?? null }} />
     </div>
   );

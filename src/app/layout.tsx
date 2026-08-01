@@ -7,9 +7,9 @@ import { BackToTop } from "./components/back-to-top";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Miggra · 创作空间", template: "%s · Miggra" },
-  description: "一个留给自己，也欢迎偶尔路过的创作空间。",
-  openGraph: { title: "Miggra · 创作空间", description: "把灵感，放到会生长的地方。", type: "website" },
+  title: { default: "Miggra", template: "%s — Miggra" },
+  description: "安静但有光的地方。",
+  openGraph: { title: "Miggra", description: "把日常、想法和情绪，放进一个很安静但很有光的地方。", type: "website" },
   robots: { index: true, follow: true },
 };
 

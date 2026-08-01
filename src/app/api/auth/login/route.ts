@@ -45,9 +45,34 @@ function recordFailure(key: string) {
   attempts.set(key, attempt);
 }
 
+function setAdminCookie(response: NextResponse, session: string) {
+  response.cookies.set(ADMIN_COOKIE, session, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: ADMIN_SESSION_MAX_AGE,
+  });
+  return response;
+}
+
+export async function GET(request: Request) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  try {
+    const response = NextResponse.redirect(new URL("/admin", request.url), 303);
+    return setAdminCookie(response, createAdminSession());
+  } catch {
+    return NextResponse.json({ error: "本地登录配置不完整。" }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   const key = getClientKey(request);
-  if (isLocked(key)) {
+  const enforceRateLimit = process.env.NODE_ENV === "production";
+  if (enforceRateLimit && isLocked(key)) {
     return NextResponse.json({ error: "尝试次数过多，请稍后再试。" }, { status: 429 });
   }
 
@@ -65,11 +90,11 @@ export async function POST(request: Request) {
   }
 
   if (!ok) {
-    recordFailure(key);
+    if (enforceRateLimit) recordFailure(key);
     return NextResponse.json({ error: "密码错误。" }, { status: 401 });
   }
 
-  attempts.delete(key);
+  if (enforceRateLimit) attempts.delete(key);
 
   let session = "";
   try {
@@ -78,14 +103,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "后台登录配置不完整。" }, { status: 500 });
   }
 
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set(ADMIN_COOKIE, session, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: ADMIN_SESSION_MAX_AGE,
-  });
-
-  return response;
+  return setAdminCookie(NextResponse.json({ ok: true }), session);
 }

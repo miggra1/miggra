@@ -213,18 +213,18 @@ export function NotesEditor({ mode, initial }: Props) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto animate-in px-6 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <button onClick={() => router.back()} className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition flex items-center gap-1">
+    <div className="notes-editor-studio animate-in">
+      <div className="notes-editor-toolbar">
+        <button onClick={() => router.back()} className="notes-editor-back">
           ← 返回列表
         </button>
         <div className="flex items-center gap-3">
-          <span className="text-[11px] text-[var(--subtle)]">
+          <span className="notes-editor-save-state">
             {saveState === "saving" ? "正在自动保存…" : saveState === "saved" && lastSavedAt ? `已自动保存 ${lastSavedAt.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}` : saveState === "error" ? "自动保存失败，已保存在本地" : ""}
           </span>
           <button
             onClick={() => setShowPreview((v) => !v)}
-            className={`text-sm px-3 py-1.5 rounded-lg border transition ${
+            className={`notes-editor-preview-toggle ${
               showPreview
                 ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10"
                 : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--fg)]"
@@ -232,8 +232,8 @@ export function NotesEditor({ mode, initial }: Props) {
           >
             {showPreview ? "隐藏预览" : "分栏预览"}
           </button>
-          <button onClick={() => router.back()} className="btn text-sm">取消</button>
-          <button onClick={save} disabled={isPending} className="btn btn-primary text-sm">{saveButtonText}</button>
+          <button onClick={() => router.back()} className="notes-editor-cancel">取消</button>
+          <button onClick={save} disabled={isPending} className="notes-editor-publish">{saveButtonText}</button>
         </div>
       </div>
 
@@ -254,18 +254,18 @@ export function NotesEditor({ mode, initial }: Props) {
         <div className="mb-8 px-4 py-3 rounded-lg text-sm border border-[var(--rose)]/20 bg-[var(--rose)]/5 text-[var(--rose)]">{error}</div>
       )}
 
-      <div className={`${showPreview ? "grid grid-cols-2 gap-6" : ""}`}>
-        <div className="space-y-6">
+      <div className={`notes-editor-workspace ${showPreview ? "is-previewing" : ""}`}>
+        <div className="notes-editor-canvas">
           <input
             value={title} onChange={(e) => { setTitle(e.target.value); markDirty(); }} placeholder="标题..."
             autoFocus
-            className="w-full text-4xl font-semibold bg-transparent border-none outline-none placeholder:text-[var(--subtle)] tracking-tight"
+            className="notes-editor-title"
           />
 
           <input
             value={coverImage} onChange={(e) => { setCoverImage(e.target.value); markDirty(); }}
             placeholder="封面图 URL（可选，支持粘贴上传链接）"
-            className="w-full text-sm bg-transparent border-b border-[var(--border)] pb-2 outline-none placeholder:text-[var(--subtle)] text-[var(--muted)] focus:border-[var(--accent)] transition"
+            className="notes-editor-cover"
           />
 
           <MarkdownEditor
@@ -275,7 +275,7 @@ export function NotesEditor({ mode, initial }: Props) {
             rows={showPreview ? 28 : 20}
           />
 
-          <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-[var(--border)]">
+          <div className="notes-editor-meta">
             <input value={tag} onChange={(e) => { setTag(e.target.value); markDirty(); }}
               className="input w-28 text-sm" placeholder="标签" />
             <select value={mood} onChange={(e) => { setMood(e.target.value); markDirty(); }}
