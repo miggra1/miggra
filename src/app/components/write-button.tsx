@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function WriteButton() {
+export function WriteButton({ variant = "default", beforeNavigate, id }: { variant?: "default" | "compact"; beforeNavigate?: () => void; id?: string }) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState("");
@@ -16,6 +16,7 @@ export function WriteButton() {
       const res = await fetch("/api/auth/check");
       const data = await res.json();
       if (data.authenticated) {
+        beforeNavigate?.();
         router.push("/admin/notes/new");
         return;
       }
@@ -41,6 +42,7 @@ export function WriteButton() {
         setError(data?.error ?? "密码错误");
         return;
       }
+      beforeNavigate?.();
       router.push("/admin/notes/new");
     } catch {
       setError("网络错误，请重试");
@@ -52,10 +54,11 @@ export function WriteButton() {
   return (
     <>
       <button
+        id={id}
         onClick={handleClick}
-        className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90 sm:px-6"
+        className={variant === "compact" ? "workspace-primary" : "rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:scale-[1.02] hover:opacity-90 sm:px-6"}
       >
-        写点东西
+        开始写作
       </button>
 
       {showModal && (

@@ -2,25 +2,28 @@ import Link from "next/link";
 import { MarkdownRenderer } from "@/app/components/markdown-renderer";
 import { DbErrorBanner } from "./components/db-error-banner";
 import { WriteButton } from "./components/write-button";
+import { QuickCapture } from "./components/quick-capture";
 import { listContentItemsSafe } from "@/lib/content";
 import { moodFor, NOTE_MOODS } from "@/lib/note-mood";
 import { getHomePageData, getOnThisDayNotes } from "@/lib/notes";
 import { listHomePhotos } from "@/lib/photos";
-import { sectionIdentity } from "@/lib/section-identity";
 
 function daysAgo(date: Date): number {
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
+  return Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function writingStatus(latestNoteAt: Date | null, publishedCount: number): { text: string; tone: "fresh" | "warm" | "quiet" } {
-  if (!latestNoteAt) return { text: publishedCount > 0 ? "继续写点什么吧。" : "写下第一篇吧。", tone: "quiet" };
+  if (!latestNoteAt) return { text: publishedCount > 0 ? "继续写点什么吧" : "写下第一篇吧", tone: "quiet" };
   const days = daysAgo(latestNoteAt);
   if (days === 0) return { text: "今天写过了", tone: "fresh" };
   if (days === 1) return { text: "昨天刚写过", tone: "warm" };
   if (days <= 7) return { text: `上次落笔是 ${days} 天前`, tone: "warm" };
   return { text: `上一支笔，已经放下 ${days} 天`, tone: "quiet" };
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric" }).format(new Date(date));
 }
 
 function yearLabel(date: Date): string {
@@ -32,9 +35,9 @@ function yearLabel(date: Date): string {
 
 export async function HomePage() {
   const { notes, stats, dbError } = await getHomePageData();
-  const photos = await listHomePhotos(5).catch(() => []);
-  const onThisDayNotes = await getOnThisDayNotes().catch(() => []);
-  const [now, wish, reading, inspirations] = await Promise.all([
+  const [photos, onThisDayNotes, now, wish, reading, inspirations] = await Promise.all([
+    listHomePhotos(5).catch(() => []),
+    getOnThisDayNotes().catch(() => []),
     listContentItemsSafe("NOW"),
     listContentItemsSafe("WISH"),
     listContentItemsSafe("READING"),
@@ -42,7 +45,7 @@ export async function HomePage() {
   ]);
 
   const published = notes.filter((note) => note.status === "PUBLISHED");
-  const latest = published.slice(0, 3);
+  const latest = published.slice(0, 4);
   const featured = published.find((note) => note.pinned) ?? latest[0] ?? null;
   const random = published.length ? published[new Date().getDate() % published.length] : null;
   const status = writingStatus(stats.latestNoteAt, published.length);
@@ -53,272 +56,154 @@ export async function HomePage() {
     count: recentForMood.filter((note) => moodFor(note) === mood.value).length,
   })).filter((mood) => mood.count > 0);
 
-  const lifeModules = [
-    {
-      label: "Now",
-      title: "当前状态",
-      description: "最近在做什么、想什么、靠近什么。",
-      href: "/now",
-      count: now.items.length,
-      latest: now.items[0]?.title,
-      style: sectionIdentity.now,
-    },
-    {
-      label: "愿望",
-      title: "愿望清单",
-      description: "想完成、想体验、想慢慢抵达的事。",
-      href: "/wish",
-      count: wish.items.length,
-      latest: wish.items[0]?.title,
-      style: sectionIdentity.wish,
-    },
-    {
-      label: "书单",
-      title: "书单",
-      description: "在读、读过、想读的书和一点想法。",
-      href: "/reading",
-      count: reading.items.length,
-      latest: reading.items[0]?.title,
-      style: sectionIdentity.reading,
-    },
-    {
-      label: "灵感",
-      title: "灵感墙",
-      description: "还没长成文章的小点子和备忘。",
-      href: "/inspirations",
-      count: inspirations.items.length,
-      latest: inspirations.items[0]?.title,
-      style: sectionIdentity.inspiration,
-    },
+  const modules = [
+    { href: "/now", title: "此刻", count: now.items.length, latest: now.items[0]?.title },
+    { href: "/wish", title: "愿望", count: wish.items.length, latest: wish.items[0]?.title },
+    { href: "/reading", title: "阅读", count: reading.items.length, latest: reading.items[0]?.title },
+    { href: "/inspirations", title: "灵感", count: inspirations.items.length, latest: inspirations.items[0]?.title },
   ];
 
   return (
     <>
       {dbError ? <DbErrorBanner /> : null}
-      <main className="relative min-h-screen w-full max-w-[100vw] overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(255,120,196,0.14),transparent_30%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.1),transparent_30%)] opacity-80" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] opacity-20" />
-
-        <section className="relative mx-auto grid min-h-[calc(100svh-56px)] w-full max-w-6xl gap-10 px-5 pb-14 pt-14 sm:px-6 sm:py-16 lg:min-h-screen lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-10">
-          <div className="min-w-0">
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-xs text-[var(--muted)] backdrop-blur-xl sm:px-4 sm:text-sm">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]" />
-              一个安静但有光的地方
-            </div>
-
-            <div className="mt-8 space-y-4 sm:space-y-5">
-              <p className="text-xs uppercase tracking-[0.32em] text-[var(--subtle)] sm:text-sm sm:tracking-[0.35em]">Miggra Journal</p>
-              <h1 className="max-w-full text-[2.55rem] font-semibold leading-[1.14] tracking-normal sm:max-w-4xl sm:text-6xl sm:leading-tight sm:tracking-tight sm:text-balance lg:text-7xl">
-                <span className="block sm:hidden">
-                  把日常、想法
-                  <br />
-                  和情绪，放进
-                  <br />
-                  一个很安静
-                  <br />
-                  但很有光的地方。
-                </span>
-                <span className="hidden sm:inline">把日常、想法和情绪，放进一个很安静但很有光的地方。</span>
-              </h1>
-              <p className="max-w-[21rem] text-[15px] leading-7 text-[var(--muted)] sm:max-w-2xl sm:text-lg sm:leading-8">
-                这里没有算法，没有打扰。只有慢慢生长的文字、照片和一些生活切片。
-              </p>
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
-              <Link href="/notes" className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-fg)] transition hover:opacity-90 sm:px-6">看碎碎念</Link>
-              <Link href="/photos" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)] sm:px-6">看照片</Link>
-              <Link href="/about" className="rounded-full border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm font-medium text-[var(--fg)] backdrop-blur-xl transition hover:bg-[var(--card-strong)] sm:px-6">关于这里</Link>
-            </div>
+      <main className="workspace">
+        <div className="workspace-inner">
+          <div className="workspace-kicker">
+            <span>Personal studio / Miggra</span>
+            <span>{new Intl.DateTimeFormat("zh-CN", { weekday: "long", month: "long", day: "numeric" }).format(new Date())}</span>
           </div>
 
-          <div className="grid min-w-0 gap-4">
-            {heroPhoto ? (
-              <Link href="/photos" className="group overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] shadow-2xl shadow-black/30">
-                <img src={heroPhoto.url} alt={heroPhoto.caption ?? ""} className="h-64 w-full object-cover transition duration-700 group-hover:scale-[1.03] sm:h-80 lg:h-96" />
-                <div className="flex items-center justify-between gap-4 px-5 py-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-[var(--subtle)]">Featured photo</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{heroPhoto.caption ?? "最近的一张照片"}</p>
-                  </div>
-                  <span className="text-sm text-[var(--subtle)] transition group-hover:text-[var(--fg)]">查看</span>
-                </div>
-              </Link>
-            ) : null}
+          <section className="workspace-heading" aria-labelledby="workspace-title">
+            <h1 id="workspace-title">把灵感，放到<br /><em>会生长的地方。</em></h1>
+            <p className="workspace-heading-copy">一个留给自己，也欢迎偶尔路过的<strong>创作空间</strong>。在这里，把日常的观察、未完成的想法和那些还说不清的情绪，慢慢整理成形。</p>
+          </section>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 backdrop-blur-xl">
-                <p className="text-sm text-[var(--subtle)]">当前状态</p>
-                <p className={`mt-2 text-xl font-semibold leading-8 ${status.tone === "fresh" ? "text-emerald-400" : status.tone === "warm" ? "text-[var(--fg)]" : "text-[var(--muted)]"}`}>{status.text}</p>
-                <p className="mt-1 text-xs text-[var(--subtle)]">共 {published.length} 篇碎碎念</p>
-              </div>
-              {random ? (
-                <Link href={`/notes/${random.id}`} className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:bg-[var(--card-strong)]">
-                  <p className="text-sm text-[var(--subtle)]">随机一句</p>
-                  <p className="mt-3 line-clamp-4 break-words text-sm leading-7 text-[var(--fg)]">{random.text.length > 110 ? `${random.text.slice(0, 110)}...` : random.text}</p>
+          <section className="workspace-grid" aria-label="创作工作台">
+            <div className="workspace-main">
+              <section className="workspace-panel workspace-panel--accent" aria-labelledby="capture-title">
+                <div className="workspace-panel-header">
+                  <span className="workspace-label">Quick capture</span>
+                  <span className="workspace-command"><kbd>⌘</kbd><kbd>↵</kbd></span>
+                </div>
+                <QuickCapture />
+              </section>
+
+              {featured ? (
+                <Link href={`/notes/${featured.id}`} className="workspace-panel workspace-note-feature">
+                  <div className="workspace-note-feature-copy">
+                    <div>
+                      <div className="workspace-note-feature-meta">
+                        <span>精选记录</span>
+                        <span>{featured.tag}</span>
+                        <time>{formatDate(featured.createdAt)}</time>
+                      </div>
+                      <h2 className="workspace-note-feature-title">{featured.title}</h2>
+                      <div className="workspace-note-feature-excerpt line-clamp-3"><MarkdownRenderer preview>{featured.text}</MarkdownRenderer></div>
+                    </div>
+                    <span className="workspace-note-feature-link">打开这篇记录</span>
+                  </div>
+                  <div className="workspace-note-feature-media">
+                    {featured.coverImage ? <img src={featured.coverImage} alt="" /> : <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(200,167,255,.42),transparent_30%),radial-gradient(circle_at_80%_70%,rgba(240,160,126,.3),transparent_35%),var(--bg-surface)]" />}
+                  </div>
+                </Link>
+              ) : (
+                <section className="workspace-panel workspace-memory">
+                  <span className="workspace-label">First note</span>
+                  <h2>给这个空间留下第一笔。</h2>
+                  <p>每个创作空间都从一句不完整的话开始。今天也可以只是一个标题，或者一段还没想明白的文字。</p>
+                  <WriteButton variant="compact" />
+                </section>
+              )}
+
+              <section className="workspace-panel" aria-labelledby="latest-title">
+                <div className="workspace-panel-header">
+                  <span id="latest-title" className="workspace-label">Recent notes</span>
+                  <Link href="/notes" className="text-xs text-[var(--muted)] transition hover:text-[var(--fg)]">查看全部 ↗</Link>
+                </div>
+                <div className="workspace-list">
+                  {latest.length > 0 ? latest.map((note, index) => (
+                    <Link key={note.id} href={`/notes/${note.id}`} className="workspace-list-item">
+                      <span className="workspace-list-index">0{index + 1}</span>
+                      <div className="min-w-0">
+                        <div className="workspace-list-title">{note.title}</div>
+                        <div className="workspace-list-excerpt"><MarkdownRenderer preview>{note.text}</MarkdownRenderer></div>
+                      </div>
+                      <time className="workspace-list-date">{formatDate(note.createdAt)}</time>
+                    </Link>
+                  )) : (
+                    <div className="py-8 text-sm text-[var(--muted)]">还没有公开的记录，写下第一篇吧。</div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <aside className="workspace-side">
+              <section className="workspace-panel workspace-side-panel" aria-label="写作状态">
+                <div className="workspace-label">Writing signal</div>
+                <div className={`workspace-signal-value ${status.tone === "fresh" ? "text-emerald-300" : status.tone === "warm" ? "text-[var(--fg)]" : "text-[var(--muted)]"}`}>{status.text}</div>
+                <p className="workspace-signal-copy">已积累 {published.length} 篇记录。保持一点节奏，比追求完整更重要。</p>
+                {moodSpectrum.length > 0 ? (
+                  <>
+                    <div className="workspace-signal-bar" aria-label="近期情绪分布">
+                      {moodSpectrum.map((mood) => <span key={mood.value} className={mood.barClass} style={{ flexGrow: mood.count }} />)}
+                    </div>
+                    <div className="workspace-signal-legend">
+                      {moodSpectrum.slice(0, 4).map((mood) => <span key={mood.value}><i className={mood.dotClass} />{mood.label}</span>)}
+                    </div>
+                  </>
+                ) : null}
+              </section>
+
+              {heroPhoto ? (
+                <Link href="/photos" className="workspace-panel workspace-photo">
+                  <img src={heroPhoto.url} alt={heroPhoto.caption ?? "最近的一张照片"} />
+                  <div className="workspace-photo-caption"><span><strong>最近看见的光</strong><br />{heroPhoto.caption ?? "一张还留在记忆里的照片"}</span><span aria-hidden="true">↗</span></div>
                 </Link>
               ) : null}
-            </div>
 
-            {moodSpectrum.length > 0 ? (
-              <div className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 backdrop-blur-xl">
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-[var(--subtle)]">最近的情绪色谱</p>
-                  <span className="text-xs text-[var(--subtle)]">近 {recentForMood.length} 篇</span>
-                </div>
-                <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-white/10">
-                  {moodSpectrum.map((mood) => (
-                    <span key={mood.value} className={mood.barClass} style={{ flexGrow: mood.count }} />
-                  ))}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {moodSpectrum.map((mood) => (
-                    <span key={mood.value} className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${mood.borderClass} ${mood.softClass} ${mood.textClass}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${mood.dotClass}`} />
-                      {mood.label} {mood.count}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="relative mx-auto max-w-6xl px-5 pb-20 sm:px-6 lg:px-10">
-          {featured ? (
-            <div className="mb-14 grid gap-5 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)]">Featured</p>
-                <h2 className="mt-2 text-3xl font-semibold">先从这一篇开始</h2>
-                <p className="mt-3 leading-7 text-[var(--muted)]">如果只想短暂停一下，这篇是一个不错的入口。</p>
-              </div>
-              <Link href={`/notes/${featured.id}`} className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
-                {featured.coverImage ? (
-                  <div className="mb-5 overflow-hidden rounded-2xl">
-                    <img src={featured.coverImage} alt="" className="h-48 w-full object-cover" />
-                  </div>
-                ) : null}
-                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--subtle)]">
-                  <span className="rounded-full border border-[var(--border)] px-3 py-1">{featured.tag}</span>
-                  <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-amber-100">{moodFor(featured)}</span>
-                  <time>{new Date(featured.createdAt).toISOString().slice(0, 10)}</time>
-                </div>
-                <h3 className="mt-4 text-2xl font-semibold">{featured.title}</h3>
-                <div className="mt-4 line-clamp-3">
-                  <MarkdownRenderer preview>{featured.text}</MarkdownRenderer>
-                </div>
-              </Link>
-            </div>
-          ) : null}
-
-          <div className="grid gap-12">
-            <section>
-              <div className="mb-5 flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)]">Latest notes</p>
-                  <h2 className="mt-2 text-2xl font-semibold">最近写下的</h2>
-                </div>
-                <Link href="/notes" className="text-sm text-[var(--subtle)] transition hover:text-[var(--fg)]">全部</Link>
-              </div>
-              <div className="grid gap-4 lg:grid-cols-3">
-                {latest.map((note) => (
-                  <Link key={note.id} href={`/notes/${note.id}`} className="rounded-[1.35rem] border border-[var(--border)] bg-[var(--card)] p-5 transition hover:bg-[var(--card-strong)]">
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--subtle)]">
-                      <span className="rounded-full border border-[var(--border)] px-3 py-1">{note.tag}</span>
-                      <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-amber-100">{moodFor(note)}</span>
-                      <time>{new Date(note.createdAt).toISOString().slice(0, 10)}</time>
-                    </div>
-                    <h3 className="mt-4 text-xl font-medium">{note.title}</h3>
-                    <div className="mt-3 line-clamp-3">
-                      <MarkdownRenderer preview>{note.text}</MarkdownRenderer>
-                    </div>
+              <section className="workspace-panel workspace-modules" aria-labelledby="modules-title">
+                <div id="modules-title" className="workspace-label">Your orbit</div>
+                {modules.map((module) => (
+                  <Link key={module.href} href={module.href} className="workspace-module">
+                    <span className="workspace-module-copy"><i className="workspace-module-dot" /><span className="workspace-module-title">{module.latest ? `${module.title} · ${module.latest}` : module.title}</span></span>
+                    <span className="workspace-module-count">{module.count}</span>
                   </Link>
                 ))}
-              </div>
-            </section>
+              </section>
+            </aside>
+          </section>
+
+          <section className="workspace-bottom">
+            {onThisDayNotes.length > 0 ? (
+              <section className="workspace-panel workspace-memory">
+                <span className="workspace-label">On this day</span>
+                <h2>{yearLabel(new Date(onThisDayNotes[0].createdAt))}</h2>
+                <p>{onThisDayNotes[0].title}。有些念头不会过期，只是在等下一次被想起。</p>
+                <Link href={`/notes/${onThisDayNotes[0].id}`} className="workspace-memory-link">回到那一天 ↗</Link>
+              </section>
+            ) : random ? (
+              <section className="workspace-panel workspace-memory">
+                <span className="workspace-label">A random line</span>
+                <h2>随手抽一条</h2>
+                <p>“{random.text.length > 120 ? `${random.text.slice(0, 120)}…` : random.text}”</p>
+                <Link href={`/notes/${random.id}`} className="workspace-memory-link">打开原文 ↗</Link>
+              </section>
+            ) : (
+              <section className="workspace-panel workspace-memory"><span className="workspace-label">A small invitation</span><h2>留一点空白给自己。</h2><p>当没有灵感的时候，看看窗外也算创作的一部分。</p></section>
+            )}
 
             {photos.length > 1 ? (
-              <section>
-                <div className="mb-5 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)]">Photos</p>
-                    <h2 className="mt-2 text-2xl font-semibold">最近看见的光</h2>
-                  </div>
-                  <Link href="/photos" className="text-sm text-[var(--subtle)] transition hover:text-[var(--fg)]">照片墙</Link>
-                </div>
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {photos.slice(1, 5).map((photo) => (
-                    <Link key={photo.id} href="/photos" className="h-44 w-44 shrink-0 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] sm:h-52 sm:w-52">
-                      <img src={photo.url} alt={photo.caption ?? ""} className="h-full w-full object-cover transition duration-500 hover:scale-105" />
-                    </Link>
-                  ))}
+              <section className="workspace-panel workspace-side-panel">
+                <div className="flex items-center justify-between gap-3"><span className="workspace-label">Visual notes</span><Link href="/photos" className="text-xs text-[var(--muted)] transition hover:text-[var(--fg)]">照片墙 ↗</Link></div>
+                <div className="workspace-photo-strip mt-4">
+                  {photos.slice(1, 4).map((photo) => <Link key={photo.id} href="/photos"><img src={photo.url} alt={photo.caption ?? ""} /></Link>)}
                 </div>
               </section>
-            ) : null}
-
-            <section>
-              <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)]">Life modules</p>
-                  <h2 className="mt-2 text-2xl font-semibold">日常也有自己的栏目</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--muted)]">Now、愿望、书单和灵感不再藏在一个入口里。它们各自独立，也可以在生活切片里一起看。</p>
-                </div>
-                <Link href="/life" className="text-sm text-[var(--subtle)] transition hover:text-[var(--fg)]">汇总页</Link>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {lifeModules.map((item) => (
-                  <Link key={item.href} href={item.href} className={`rounded-[1.35rem] border bg-[var(--card)] p-5 transition ${item.style.borderClass} ${item.style.hoverClass}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className={`text-xs uppercase tracking-[0.22em] ${item.style.eyebrowClass}`}>{item.label}</p>
-                        <h3 className="mt-3 text-xl font-medium">{item.title}</h3>
-                      </div>
-                      <span className={`rounded-full border px-2.5 py-1 text-xs ${item.style.badgeClass}`}>{item.count}</span>
-                    </div>
-                    <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.description}</p>
-                    {item.latest ? <p className={`mt-4 line-clamp-1 text-sm ${item.style.textClass}`}>最近：{item.latest}</p> : null}
-                  </Link>
-                ))}
-              </div>
-            </section>
-
-            {onThisDayNotes.length > 0 ? (
-              <section className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
-                <p className="text-xs uppercase tracking-[0.3em] text-[var(--subtle)]">On this day</p>
-                <h2 className="mt-2 text-2xl font-semibold">那年今日</h2>
-                <div className="mt-4 grid gap-3">
-                  {onThisDayNotes.slice(0, 3).map((note) => (
-                    <Link key={note.id} href={`/notes/${note.id}`} className="rounded-2xl border border-[var(--border)] bg-black/10 p-4 transition hover:bg-black/20">
-                      <span className="text-xs text-[var(--accent)]">{yearLabel(new Date(note.createdAt))}</span>
-                      <h3 className="mt-1 text-sm font-medium">{note.title}</h3>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            <section className="grid gap-4 md:grid-cols-3">
-              <Link href="/timeline" className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
-                <p className="text-xs uppercase tracking-[0.25em] text-[var(--subtle)]">Timeline</p>
-                <h2 className="mt-3 text-xl font-semibold">时间线</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">看这个空间和生活节点如何慢慢长出来。</p>
-              </Link>
-              <Link href="/guestbook" className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6 transition hover:bg-[var(--card-strong)]">
-                <p className="text-xs uppercase tracking-[0.25em] text-[var(--subtle)]">Guestbook</p>
-                <h2 className="mt-3 text-xl font-semibold">留言板</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">如果路过，可以留下一枚很轻的脚印。</p>
-              </Link>
-              <div className="rounded-[1.5rem] border border-[var(--border)] bg-[var(--card)] p-6">
-                <p className="text-xs uppercase tracking-[0.25em] text-[var(--subtle)]">Write</p>
-                <h2 className="mt-3 text-xl font-semibold">继续记录</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">给自己留一个低成本的入口。</p>
-                <div className="mt-5">
-                  <WriteButton />
-                </div>
-              </div>
-            </section>
-          </div>
-        </section>
+            ) : (
+              <section className="workspace-panel workspace-memory"><span className="workspace-label">Visual notes</span><h2>把看到的也留下。</h2><p>照片、颜色、路边的一束光，都可以成为下一篇记录的起点。</p><Link href="/photos" className="workspace-memory-link">进入照片墙 ↗</Link></section>
+            )}
+          </section>
+        </div>
       </main>
     </>
   );
