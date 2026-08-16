@@ -53,8 +53,7 @@ export function NotesEditor({ mode, initial }: Props) {
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
-  const [draftAvailable, setDraftAvailable] = useState(false);
-  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const [pendingDraft, setPendingDraft] = useState<DraftData | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
@@ -89,38 +88,53 @@ export function NotesEditor({ mode, initial }: Props) {
       const draft: DraftData = JSON.parse(raw);
       if (draft.title || draft.text || draft.coverImage) {
         window.setTimeout(() => {
-          setDraftSavedAt(draft.savedAt ?? null);
-          setDraftAvailable(true);
+          setPendingDraft(draft);
         }, 0);
       }
     } catch { /* ignore */ }
   }, [draftKey, mode]);
 
   const restoreDraft = () => {
-    try {
-      const raw = localStorage.getItem(draftKey) ?? (mode === "new" ? localStorage.getItem(LEGACY_DRAFT_KEY) : null);
-      if (!raw) return;
-      const draft: DraftData = JSON.parse(raw);
-      if (draft.noteId) setNoteId(draft.noteId);
-      setTitle(draft.title ?? "");
-      setText(draft.text ?? "");
-      setTag(draft.tag ?? "随想");
-      setMood(draft.mood ?? "记录");
-      if (draft.status) setStatus(draft.status as NoteStatus);
-      setPinned(Boolean(draft.pinned));
-      setCoverImage(draft.coverImage ?? "");
-      setScheduledAt(draft.scheduledAt ?? "");
-      setDraftAvailable(false);
-      setDraftRestored(true);
-      setDirty(true);
-    } catch { /* ignore */ }
+    if (!pendingDraft) {
+      setError("草稿已经失效或被其他页面清理，请继续编辑当前内容。");
+      return;
+    }
+
+    const draft = pendingDraft;
+    if (draft.noteId) {
+      setNoteId(draft.noteId);
+      setCreatedByAutosave(true);
+    }
+    setTitle(draft.title ?? "");
+    setText(draft.text ?? "");
+    setTag(draft.tag ?? "随想");
+    setMood(draft.mood ?? "记录");
+    if (draft.status === "DRAFT" || draft.status === "PUBLISHED" || draft.status === "SCHEDULED") {
+      setStatus(draft.status);
+    }
+    setPinned(Boolean(draft.pinned));
+    setCoverImage(draft.coverImage ?? "");
+    setScheduledAt(draft.scheduledAt ?? "");
+    setPendingDraft(null);
+    setDraftRestored(true);
+    setError("");
+    setSaveState("idle");
+    setDirty(true);
   };
 
   const dismissDraft = () => {
-    localStorage.removeItem(draftKey);
-    if (mode === "new") localStorage.removeItem(LEGACY_DRAFT_KEY);
-    setDraftAvailable(false);
+    try {
+      localStorage.removeItem(draftKey);
+      if (mode === "new") localStorage.removeItem(LEGACY_DRAFT_KEY);
+    } catch { /* ignore */ }
+    setPendingDraft(null);
   };
+
+  useEffect(() => {
+    if (!draftRestored) return;
+    const timer = window.setTimeout(() => setDraftRestored(false), 3600);
+    return () => window.clearTimeout(timer);
+  }, [draftRestored]);
 
   const saveLocalDraft = useCallback(() => {
     localStorage.setItem(draftKey, JSON.stringify(snapshot()));
@@ -237,16 +251,23 @@ export function NotesEditor({ mode, initial }: Props) {
         </div>
       </div>
 
-      {draftAvailable && !draftRestored && (
-        <div className="mb-6 px-5 py-4 rounded-xl border border-amber-300/30 bg-amber-300/8 flex items-center justify-between gap-4">
+      {pendingDraft && (
+        <div className="mb-6 px-5 py-4 rounded-xl border border-amber-300/30 bg-amber-300/8 flex items-center justify-between gap-4" role="status">
           <div>
             <p className="text-sm font-medium">检测到未保存的草稿</p>
-            <p className="text-xs text-[var(--muted)] mt-0.5">{draftSavedAt ? `上次自动保存于 ${formatSavedAt(draftSavedAt)}，要恢复吗？` : "要恢复吗？"}</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">{pendingDraft.savedAt ? `上次自动保存于 ${formatSavedAt(pendingDraft.savedAt)}，要恢复吗？` : "要恢复吗？"}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={dismissDraft} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--fg)] transition">丢弃</button>
-            <button onClick={restoreDraft} className="text-xs px-3 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--accent-fg)] transition hover:opacity-90">恢复</button>
+            <button type="button" onClick={dismissDraft} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--fg)] transition">丢弃</button>
+            <button type="button" onClick={restoreDraft} className="text-xs px-3 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--accent-fg)] transition hover:opacity-90">恢复</button>
           </div>
+        </div>
+      )}
+
+      {draftRestored && (
+        <div className="notes-editor-draft-restored" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
+          草稿已恢复，可以继续编辑
         </div>
       )}
 

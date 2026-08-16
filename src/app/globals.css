@@ -968,6 +968,8 @@ body:has(.admin-shell) [aria-label="返回顶部"] { display: none; }
 .notes-editor-preview-toggle:hover, .notes-editor-cancel:hover { color: #fff; border-color: rgba(255,255,255,.18); }
 .notes-editor-publish { min-height: 36px; padding: 0 17px; border: 0; border-radius: 999px; background: #f0eee9; color: #111315; font: inherit; font-size: 10px; font-weight: 600; }
 .notes-editor-publish:disabled { opacity: .45; }
+.notes-editor-draft-restored { min-height: 45px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border: 1px solid rgba(129,190,158,.24); border-radius: 11px; background: rgba(72,132,101,.1); color: #b9d9c7; font-size: 12px; }
+.notes-editor-draft-restored > span { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: rgba(129,190,158,.14); color: #c7e5d3; font-size: 11px; }
 .notes-editor-workspace.is-previewing { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
 .notes-editor-canvas { min-width: 0; padding: 40px 46px 30px; border: 1px solid rgba(255,255,255,.055); border-radius: 15px; background: #15181a; box-shadow: 0 18px 50px rgba(0,0,0,.2); }
 .notes-editor-title { width: 100%; margin: 0 0 24px; border: 0; outline: 0; background: transparent; color: #f2f0ec; font-family: var(--font); font-size: clamp(2.2rem,4.5vw,4rem); font-weight: 300; line-height: 1.05; letter-spacing: -.05em; }
