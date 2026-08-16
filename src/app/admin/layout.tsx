@@ -2,6 +2,7 @@ import { isAdminAuthenticated } from "@/lib/auth";
 import { AdminLogin } from "./login";
 import { AdminNav } from "./admin-nav";
 import { AdminTopbar } from "./admin-topbar";
+import { NeteaseMusicPlayer } from "./netease-music-player";
 import type { ReactNode } from "react";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
@@ -13,6 +14,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <AdminNav />
         <div className="studio-workspace">
           <AdminTopbar />
+          <NeteaseMusicPlayer />
           <main className="studio-main">{children}</main>
         </div>
       </div>
