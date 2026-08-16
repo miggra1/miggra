@@ -48,6 +48,11 @@ function getPlayerUrl(target: NeteaseTarget) {
   return `https://music.163.com/outchain/player?${params.toString()}`;
 }
 
+function getNeteasePageUrl(target: NeteaseTarget) {
+  const path = target.type === "2" ? "song" : target.type === "1" ? "album" : "playlist";
+  return `https://music.163.com/#/${path}?id=${target.id}`;
+}
+
 export function NeteaseMusicPlayer() {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -103,7 +108,11 @@ export function NeteaseMusicPlayer() {
   return (
     <div className="studio-music-plugin">
       {isOpen && (
-        <section className="studio-music-panel" role="dialog" aria-labelledby={titleId}>
+        <section
+          className={`studio-music-panel${target.type === "2" ? " is-track" : " is-collection"}`}
+          role="dialog"
+          aria-labelledby={titleId}
+        >
           <header className="studio-music-panel-head">
             <div>
               <p>网易云音乐</p>
@@ -155,10 +164,25 @@ export function NeteaseMusicPlayer() {
                 allow="autoplay; encrypted-media"
                 style={{ height: playerHeight }}
               />
-              <button type="button" className="studio-music-change" onClick={openEditor}>
-                更换播放内容
-                <StudioIcon name="arrow" size={17} />
-              </button>
+              {target.type !== "2" && (
+                <p className="studio-music-list-tip">
+                  播放器列表区域可以滚动查看更多；受网易版权限制的歌曲可能无法在站外显示或播放。
+                </p>
+              )}
+              <div className="studio-music-footer-actions">
+                <button type="button" className="studio-music-change" onClick={openEditor}>
+                  更换播放内容
+                </button>
+                <a
+                  className="studio-music-open"
+                  href={getNeteasePageUrl(target)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  查看完整{target.label}
+                  <StudioIcon name="external" size={15} />
+                </a>
+              </div>
             </div>
           )}
         </section>
