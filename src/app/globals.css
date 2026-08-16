@@ -1788,3 +1788,45 @@ body:has(.admin-shell) [aria-label="返回顶部"] { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .studio-player-cover.is-playing { animation: none; }
 }
+
+.markdown-editor-type-controls {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 11px 0 15px;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+}
+.markdown-editor-type-controls > span {
+  margin-right: auto;
+  color: var(--subtle);
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+.markdown-editor-type-controls label { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; }
+.markdown-editor-type-controls select {
+  min-height: 29px;
+  padding: 0 25px 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  background-color: color-mix(in srgb, var(--bg) 78%, transparent);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+.markdown-editor-type-controls select:hover { border-color: var(--border-strong); }
+.markdown-editor-type-controls select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+.markdown-editor-field { border-radius: 0 0 12px 12px; transition: border-color .2s ease, font-size .2s ease; }
+
+@media (max-width: 720px) {
+  .markdown-editor-type-controls { flex-wrap: wrap; gap: 8px 12px; padding-top: 8px; padding-bottom: 8px; }
+  .markdown-editor-type-controls > span { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown-editor-field { transition: none; }
+}
