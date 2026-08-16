@@ -1,203 +1,296 @@
 "use client";
 
-import { FormEvent, useEffect, useId, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StudioIcon } from "./studio-icon";
 
-type NeteaseType = "0" | "1" | "2";
-type NeteaseTarget = {
-  type: NeteaseType;
-  id: string;
-  label: "歌单" | "专辑" | "单曲";
+type MusicTrack = {
+  id: number;
+  name: string;
+  artist: string;
+  album: string;
+  cover: string;
+  url: string;
+  duration: number;
 };
 
-const STORAGE_KEY = "miggra:netease-music-player";
-const DEFAULT_TARGET: NeteaseTarget = { type: "0", id: "3778678", label: "歌单" };
+type MusicResponse = {
+  playlistName: string;
+  tracks: MusicTrack[];
+  error?: string;
+};
 
-function parseTarget(value: string): NeteaseTarget | null {
-  const input = value.trim();
-  if (/^\d+$/.test(input)) return { type: "2", id: input, label: "单曲" };
-
-  try {
-    const url = new URL(input);
-    if (url.hostname !== "music.163.com" && url.hostname !== "www.music.163.com") return null;
-
-    const hash = url.hash.startsWith("#/") ? url.hash.slice(1) : "";
-    const path = (hash ? hash.split("?")[0] : url.pathname).replace(/\/$/, "");
-    const queryString = hash.includes("?") ? hash.slice(hash.indexOf("?") + 1) : url.search.slice(1);
-    const id = new URLSearchParams(queryString).get("id")?.trim();
-    if (!id || !/^\d+$/.test(id)) return null;
-
-    const segment = path.split("/").filter(Boolean).at(-1);
-    if (segment === "song") return { type: "2", id, label: "单曲" };
-    if (segment === "playlist") return { type: "0", id, label: "歌单" };
-    if (segment === "album") return { type: "1", id, label: "专辑" };
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
-function getPlayerUrl(target: NeteaseTarget) {
-  const params = new URLSearchParams({
-    type: target.type,
-    id: target.id,
-    auto: "0",
-    height: target.type === "2" ? "66" : "430",
-  });
-  return `https://music.163.com/outchain/player?${params.toString()}`;
-}
-
-function getNeteasePageUrl(target: NeteaseTarget) {
-  const path = target.type === "2" ? "song" : target.type === "1" ? "album" : "playlist";
-  return `https://music.163.com/#/${path}?id=${target.id}`;
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.floor(seconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${remainder}`;
 }
 
 export function NeteaseMusicPlayer() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [target, setTarget] = useState<NeteaseTarget>(DEFAULT_TARGET);
-  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [tracks, setTracks] = useState<MusicTrack[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playlistName, setPlaylistName] = useState("我的歌单");
   const [error, setError] = useState("");
-  const titleId = useId();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const resumeAfterChangeRef = useRef(false);
+  const currentTrack = tracks[currentIndex] ?? null;
 
   useEffect(() => {
-    let restoreTimer: number | undefined;
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (!saved) return;
-      const parsed = JSON.parse(saved) as NeteaseTarget;
-      if ((parsed.type === "0" || parsed.type === "1" || parsed.type === "2") && /^\d+$/.test(parsed.id)) {
-        restoreTimer = window.setTimeout(() => setTarget(parsed), 0);
-      }
-    } catch {
-      // Ignore unavailable or malformed browser storage.
-    }
+    const controller = new AbortController();
+    let isActive = true;
+
+    fetch("/api/admin/music", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        const data = await response.json() as MusicResponse;
+        if (!response.ok) throw new Error(data.error || "音乐加载失败");
+        return data;
+      })
+      .then((data) => {
+        if (!isActive) return;
+        setTracks(data.tracks);
+        setPlaylistName(data.playlistName);
+        setCurrentIndex(0);
+        setError("");
+      })
+      .catch((reason: unknown) => {
+        if (!isActive || (reason instanceof DOMException && reason.name === "AbortError")) return;
+        setError(reason instanceof Error ? reason.message : "音乐加载失败");
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false);
+      });
 
     return () => {
-      if (restoreTimer) window.clearTimeout(restoreTimer);
+      isActive = false;
+      controller.abort();
     };
   }, []);
 
-  function openEditor() {
-    setInput("");
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
+    if (audio.dataset.trackId !== String(currentTrack.id) || audio.getAttribute("src") !== currentTrack.url) {
+      audio.src = currentTrack.url;
+      audio.dataset.trackId = String(currentTrack.id);
+      audio.load();
+    }
+    if (resumeAfterChangeRef.current) {
+      audio.play().catch(() => setError("浏览器阻止了继续播放，请点击播放按钮恢复。"));
+    }
+    resumeAfterChangeRef.current = false;
+  }, [currentTrack]);
+
+  async function resetQueue() {
+    const shouldResume = Boolean(audioRef.current && !audioRef.current.paused);
+    setIsLoading(true);
     setError("");
-    setIsEditing(true);
+
+    try {
+      const response = await fetch(`/api/admin/music?reset=${Date.now()}`, { cache: "no-store" });
+      const data = await response.json() as MusicResponse;
+      if (!response.ok) throw new Error(data.error || "重新随机失败");
+
+      resumeAfterChangeRef.current = shouldResume;
+      setTracks(data.tracks);
+      setPlaylistName(data.playlistName);
+      setCurrentIndex(0);
+      setCurrentTime(0);
+      setDuration(0);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "重新随机失败");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  function saveTarget(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const next = parseTarget(input);
-    if (!next) {
-      setError("请粘贴网易云音乐的单曲、歌单或专辑公开链接");
+  function selectTrack(index: number, keepPlaying = isPlaying) {
+    if (index === currentIndex) {
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = 0;
+      if (keepPlaying) audio?.play().catch(() => setError("请点击播放按钮开始播放。"));
       return;
     }
 
-    setTarget(next);
-    setIsEditing(false);
+    const nextTrack = tracks[index];
+    const audio = audioRef.current;
+    resumeAfterChangeRef.current = false;
+    if (audio && nextTrack) {
+      audio.src = nextTrack.url;
+      audio.dataset.trackId = String(nextTrack.id);
+      audio.load();
+      if (keepPlaying) audio.play().catch(() => setError("请点击播放按钮开始播放。"));
+    }
+    setCurrentIndex(index);
+    setCurrentTime(0);
+    setDuration(0);
     setError("");
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // The player still works when storage is disabled.
+  }
+
+  function moveTrack(direction: 1 | -1, keepPlaying = isPlaying) {
+    if (!tracks.length) return;
+    const nextIndex = (currentIndex + direction + tracks.length) % tracks.length;
+    selectTrack(nextIndex, keepPlaying);
+  }
+
+  async function togglePlayback() {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
+    if (audio.paused) {
+      try {
+        await audio.play();
+        setError("");
+      } catch {
+        setError("浏览器暂时阻止了播放，请再点击一次。");
+      }
+    } else {
+      audio.pause();
     }
   }
 
-  const playerHeight = target.type === "2" ? 86 : 430;
+  function handleEnded() {
+    if (!tracks.length) return;
+    resumeAfterChangeRef.current = true;
+    setCurrentTime(0);
+    setCurrentIndex((index) => (index + 1) % tracks.length);
+  }
 
   return (
     <div className="studio-music-plugin">
+      <audio
+        ref={audioRef}
+        src={currentTrack?.url}
+        preload="metadata"
+        onPlay={() => {
+          setIsPlaying(true);
+          setError("");
+        }}
+        onPause={() => setIsPlaying(false)}
+        onEnded={handleEnded}
+        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
+        onError={() => {
+          setIsPlaying(false);
+          setError("当前歌曲的播放地址已失效，请重新随机。");
+        }}
+      />
+
       {isOpen && (
-        <section
-          className={`studio-music-panel${target.type === "2" ? " is-track" : " is-collection"}`}
-          role="dialog"
-          aria-labelledby={titleId}
-        >
+        <section className="studio-music-panel studio-custom-player" role="dialog" aria-label="网易云音乐播放器">
           <header className="studio-music-panel-head">
             <div>
               <p>网易云音乐</p>
-              <h2 id={titleId}>创作时刻</h2>
+              <h2>随机创作歌单</h2>
             </div>
             <div className="studio-music-panel-actions">
-              <button type="button" className="studio-icon-button" onClick={openEditor} aria-label="更换音乐" title="更换音乐">
-                <StudioIcon name="settings" size={18} />
+              <button
+                type="button"
+                className="studio-music-reset"
+                onClick={resetQueue}
+                disabled={isLoading}
+              >
+                <StudioIcon name="refresh" size={15} />
+                {isLoading ? "随机中" : "重新随机"}
               </button>
-              <button type="button" className="studio-icon-button" onClick={() => setIsOpen(false)} aria-label="关闭音乐插件" title="关闭">
+              <button type="button" className="studio-icon-button" onClick={() => setIsOpen(false)} aria-label="收起播放器" title="收起播放器">
                 <StudioIcon name="close" size={18} />
               </button>
             </div>
           </header>
 
-          {isEditing ? (
-            <form className="studio-music-form" onSubmit={saveTarget}>
-              <label htmlFor={`${titleId}-url`}>网易云音乐链接</label>
-              <input
-                id={`${titleId}-url`}
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                placeholder="粘贴单曲、歌单或专辑链接"
-                type="text"
-                inputMode="url"
-                spellCheck={false}
-                autoFocus
-              />
-              <p className="studio-music-hint">支持公开分享链接，也可以直接输入单曲 ID。</p>
-              {error && <p className="studio-music-error" role="alert">{error}</p>}
-              <div className="studio-music-form-actions">
-                <button type="button" className="studio-music-secondary" onClick={() => setIsEditing(false)}>取消</button>
-                <button type="submit" className="studio-music-primary">连接音乐</button>
+          <div className="studio-player-body">
+            {currentTrack ? (
+              <>
+                <div className="studio-player-now">
+                  <span
+                    className={`studio-player-cover${isPlaying ? " is-playing" : ""}`}
+                    style={{ backgroundImage: `url(${currentTrack.cover})` }}
+                    aria-hidden="true"
+                  />
+                  <div className="studio-player-meta">
+                    <small>{isPlaying ? "正在播放" : "准备播放"}</small>
+                    <strong title={currentTrack.name}>{currentTrack.name}</strong>
+                    <span>{currentTrack.artist}</span>
+                  </div>
+                </div>
+
+                <div className="studio-player-progress">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || Math.max(currentTrack.duration / 1000, 1)}
+                    step="0.1"
+                    value={Math.min(currentTime, duration || Math.max(currentTrack.duration / 1000, 1))}
+                    onChange={(event) => {
+                      const nextTime = Number(event.target.value);
+                      if (audioRef.current) audioRef.current.currentTime = nextTime;
+                      setCurrentTime(nextTime);
+                    }}
+                    aria-label="播放进度"
+                  />
+                  <div><span>{formatTime(currentTime)}</span><span>{formatTime(duration || currentTrack.duration / 1000)}</span></div>
+                </div>
+
+                <div className="studio-player-controls">
+                  <button type="button" onClick={() => moveTrack(-1)} aria-label="上一首" title="上一首">
+                    <StudioIcon name="previous" size={20} />
+                  </button>
+                  <button type="button" className="studio-player-play" onClick={togglePlayback} aria-label={isPlaying ? "暂停" : "播放"}>
+                    <StudioIcon name={isPlaying ? "pause" : "play"} size={22} />
+                  </button>
+                  <button type="button" onClick={() => moveTrack(1)} aria-label="下一首" title="下一首">
+                    <StudioIcon name="next" size={20} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="studio-player-empty">
+                <StudioIcon name="music" size={25} />
+                <p>{isLoading ? "正在从歌单挑选五首音乐…" : "暂时没有可播放的歌曲"}</p>
               </div>
-            </form>
-          ) : (
-            <div className="studio-music-content">
-              <div className="studio-music-status">
-                <span className="studio-music-status-icon"><StudioIcon name="music" size={16} /></span>
-                <span>{target.label}已连接</span>
-                <small>公开外链</small>
-              </div>
-              <iframe
-                key={`${target.type}-${target.id}`}
-                className={`studio-music-embed ${target.type === "2" ? "is-track" : "is-collection"}`}
-                src={getPlayerUrl(target)}
-                title={`网易云音乐${target.label}播放器`}
-                loading="lazy"
-                allow="autoplay; encrypted-media"
-                style={{ height: playerHeight }}
-              />
-              {target.type !== "2" && (
-                <p className="studio-music-list-tip">
-                  播放器列表区域可以滚动查看更多；受网易版权限制的歌曲可能无法在站外显示或播放。
-                </p>
-              )}
-              <div className="studio-music-footer-actions">
-                <button type="button" className="studio-music-change" onClick={openEditor}>
-                  更换播放内容
-                </button>
-                <a
-                  className="studio-music-open"
-                  href={getNeteasePageUrl(target)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  查看完整{target.label}
-                  <StudioIcon name="external" size={15} />
-                </a>
-              </div>
+            )}
+
+            {error && <p className="studio-player-error" role="alert">{error}</p>}
+
+            <div className="studio-player-queue-head">
+              <span title={playlistName}>{playlistName} · {tracks.length || 5} 首</span>
+              <small>收起后继续播放</small>
             </div>
-          )}
+            <ol className="studio-player-queue">
+              {tracks.map((track, index) => (
+                <li key={track.id} className={index === currentIndex ? "is-current" : ""}>
+                  <button type="button" onClick={() => selectTrack(index, true)}>
+                    <span className="studio-player-index">{index === currentIndex && isPlaying ? <StudioIcon name="music" size={14} /> : index + 1}</span>
+                    <span className="studio-player-track-copy">
+                      <strong>{track.name}</strong>
+                      <small>{track.artist}</small>
+                    </span>
+                    <span className="studio-player-duration">{formatTime(track.duration / 1000)}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </div>
+
         </section>
       )}
 
       <button
         type="button"
-        className={`studio-music-launcher${isOpen ? " is-active" : ""}`}
+        className={`studio-music-launcher${isOpen ? " is-active" : ""}${isPlaying ? " is-playing" : ""}`}
         onClick={() => setIsOpen((value) => !value)}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        title="网易云音乐"
+        title={currentTrack ? `${currentTrack.name} · ${currentTrack.artist}` : "网易云音乐"}
       >
-        <span className="studio-music-launcher-icon"><StudioIcon name="music" size={19} /></span>
-        <span>音乐</span>
+        <span className="studio-music-launcher-icon"><StudioIcon name={isPlaying ? "pause" : "music"} size={18} /></span>
+        <span>{isPlaying ? "播放中" : "音乐"}</span>
         <i className="studio-music-pulse" aria-hidden="true" />
       </button>
     </div>
