@@ -45,6 +45,16 @@ type PlayerResponse = {
   }>;
 };
 
+function toPublicMedia(media: NonNullable<PlayerResponse["data"]>[number]) {
+  if (!media.url || media.freeTrialInfo) return null;
+  return {
+    id: media.id,
+    url: media.url.replace(/^http:\/\//, "https://"),
+    duration: media.time || 0,
+    resolvedAt: Date.now(),
+  };
+}
+
 async function fetchNetease<T>(url: string) {
   const response = await fetch(url, {
     headers: NETEASE_HEADERS,
@@ -74,12 +84,25 @@ function detailUrl(ids: number[]) {
   return `https://music.163.com/api/song/detail?${params.toString()}`;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "请先登录后台。" }, { status: 401 });
   }
 
   try {
+    const trackId = new URL(request.url).searchParams.get("trackId");
+    if (trackId && /^\d+$/.test(trackId)) {
+      const response = await fetchNetease<PlayerResponse>(playerUrl([Number(trackId)]));
+      const track = response.data?.[0] ? toPublicMedia(response.data[0]) : null;
+      if (!track) {
+        return NextResponse.json({ error: "这首歌曲当前无法站外播放。" }, { status: 404 });
+      }
+      return NextResponse.json(
+        { track },
+        { headers: { "Cache-Control": "no-store, max-age=0" } },
+      );
+    }
+
     const playlist = await fetchNetease<PlaylistResponse>(
       `https://music.163.com/api/v6/playlist/detail?id=${PLAYLIST_ID}&n=1000&s=0`,
     );
@@ -95,6 +118,7 @@ export async function GET() {
       cover: string;
       url: string;
       duration: number;
+      resolvedAt: number;
     }> = [];
 
     for (let offset = 0; offset < Math.min(candidates.length, 180) && selected.length < 5; offset += 30) {
@@ -110,7 +134,8 @@ export async function GET() {
         if (selected.length >= 5) break;
         const song = detailMap.get(id);
         const media = mediaMap.get(id);
-        if (!song || !media?.url || media.freeTrialInfo) continue;
+        const publicMedia = media ? toPublicMedia(media) : null;
+        if (!song || !publicMedia) continue;
 
         const album = song.album ?? song.al;
         const artists = song.artists ?? song.ar ?? [];
@@ -120,8 +145,9 @@ export async function GET() {
           artist: artists.map((artist) => artist.name).filter(Boolean).join(" / ") || "未知音乐人",
           album: album?.name || "网易云音乐",
           cover: album?.picUrl ? `${album.picUrl}?param=180y180` : "",
-          url: media.url.replace(/^http:\/\//, "https://"),
-          duration: media.time || song.duration || song.dt || 0,
+          url: publicMedia.url,
+          duration: publicMedia.duration || song.duration || song.dt || 0,
+          resolvedAt: publicMedia.resolvedAt,
         });
       }
     }

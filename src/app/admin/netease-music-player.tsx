@@ -11,6 +11,7 @@ type MusicTrack = {
   cover: string;
   url: string;
   duration: number;
+  resolvedAt: number;
 };
 
 type MusicResponse = {
@@ -18,6 +19,17 @@ type MusicResponse = {
   tracks: MusicTrack[];
   error?: string;
 };
+
+type TrackRefreshResponse = {
+  track?: Pick<MusicTrack, "id" | "url" | "duration" | "resolvedAt">;
+  error?: string;
+};
+
+const MEDIA_URL_MAX_AGE = 3 * 60 * 1000;
+
+function isMediaUrlStale(track: MusicTrack) {
+  return !track.resolvedAt || Date.now() - track.resolvedAt > MEDIA_URL_MAX_AGE;
+}
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -38,6 +50,8 @@ export function NeteaseMusicPlayer() {
   const [error, setError] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
   const resumeAfterChangeRef = useRef(false);
+  const refreshingTrackRef = useRef(false);
+  const playIntentRef = useRef(false);
   const currentTrack = tracks[currentIndex] ?? null;
 
   useEffect(() => {
@@ -87,7 +101,7 @@ export function NeteaseMusicPlayer() {
   }, [currentTrack]);
 
   async function resetQueue() {
-    const shouldResume = Boolean(audioRef.current && !audioRef.current.paused);
+    const shouldResume = playIntentRef.current;
     setIsLoading(true);
     setError("");
 
@@ -109,17 +123,81 @@ export function NeteaseMusicPlayer() {
     }
   }
 
+  async function refreshTrackUrl(index: number, shouldPlay: boolean, seekTo = 0) {
+    const track = tracks[index];
+    const audio = audioRef.current;
+    if (!track || !audio || refreshingTrackRef.current) return;
+
+    refreshingTrackRef.current = true;
+    playIntentRef.current = shouldPlay;
+    try {
+      const response = await fetch(`/api/admin/music?trackId=${track.id}&refresh=${Date.now()}`, { cache: "no-store" });
+      const data = await response.json() as TrackRefreshResponse;
+      if (!response.ok || !data.track) throw new Error(data.error || "播放地址刷新失败");
+
+      const refreshed = { ...track, ...data.track };
+      setTracks((items) => items.map((item, itemIndex) => itemIndex === index ? refreshed : item));
+      setCurrentIndex(index);
+      setCurrentTime(seekTo);
+      setDuration(0);
+      setError("");
+
+      audio.pause();
+      audio.src = refreshed.url;
+      audio.dataset.trackId = String(refreshed.id);
+      await new Promise<void>((resolve, reject) => {
+        const handleLoaded = () => {
+          audio.removeEventListener("error", handleError);
+          resolve();
+        };
+        const handleError = () => {
+          audio.removeEventListener("loadedmetadata", handleLoaded);
+          reject(new Error("新的播放地址仍然不可用"));
+        };
+        audio.addEventListener("loadedmetadata", handleLoaded, { once: true });
+        audio.addEventListener("error", handleError, { once: true });
+        audio.load();
+      });
+      if (seekTo > 0 && Number.isFinite(audio.duration)) {
+        audio.currentTime = Math.min(seekTo, Math.max(audio.duration - 1, 0));
+      }
+      if (shouldPlay) {
+        await audio.play().catch(() => setError("请点击播放按钮恢复播放。"));
+      }
+    } catch (reason) {
+      playIntentRef.current = false;
+      setIsPlaying(false);
+      setError(reason instanceof Error ? reason.message : "播放地址刷新失败");
+    } finally {
+      refreshingTrackRef.current = false;
+    }
+  }
+
   function selectTrack(index: number, keepPlaying = isPlaying) {
     if (index === currentIndex) {
       const audio = audioRef.current;
       if (audio) audio.currentTime = 0;
-      if (keepPlaying) audio?.play().catch(() => setError("请点击播放按钮开始播放。"));
+      playIntentRef.current = keepPlaying;
+      if (keepPlaying && isMediaUrlStale(tracks[index])) {
+        void refreshTrackUrl(index, true);
+      } else if (keepPlaying) {
+        audio?.play().catch(() => setError("请点击播放按钮开始播放。"));
+      }
       return;
     }
 
     const nextTrack = tracks[index];
     const audio = audioRef.current;
     resumeAfterChangeRef.current = false;
+    playIntentRef.current = keepPlaying;
+    if (nextTrack && keepPlaying && isMediaUrlStale(nextTrack)) {
+      setCurrentIndex(index);
+      setCurrentTime(0);
+      setDuration(0);
+      setError("");
+      void refreshTrackUrl(index, true);
+      return;
+    }
     if (audio && nextTrack) {
       audio.src = nextTrack.url;
       audio.dataset.trackId = String(nextTrack.id);
@@ -143,6 +221,11 @@ export function NeteaseMusicPlayer() {
     if (!audio || !currentTrack) return;
 
     if (audio.paused) {
+      playIntentRef.current = true;
+      if (isMediaUrlStale(currentTrack)) {
+        await refreshTrackUrl(currentIndex, true, currentTime);
+        return;
+      }
       try {
         await audio.play();
         setError("");
@@ -150,15 +233,15 @@ export function NeteaseMusicPlayer() {
         setError("浏览器暂时阻止了播放，请再点击一次。");
       }
     } else {
+      playIntentRef.current = false;
       audio.pause();
     }
   }
 
   function handleEnded() {
     if (!tracks.length) return;
-    resumeAfterChangeRef.current = true;
-    setCurrentTime(0);
-    setCurrentIndex((index) => (index + 1) % tracks.length);
+    const nextIndex = (currentIndex + 1) % tracks.length;
+    selectTrack(nextIndex, true);
   }
 
   return (
@@ -168,6 +251,7 @@ export function NeteaseMusicPlayer() {
         src={currentTrack?.url}
         preload="metadata"
         onPlay={() => {
+          playIntentRef.current = true;
           setIsPlaying(true);
           setError("");
         }}
@@ -175,9 +259,10 @@ export function NeteaseMusicPlayer() {
         onEnded={handleEnded}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-        onError={() => {
-          setIsPlaying(false);
-          setError("当前歌曲的播放地址已失效，请重新随机。");
+        onError={(event) => {
+          if (refreshingTrackRef.current || !currentTrack) return;
+          const failedAt = event.currentTarget.currentTime || currentTime;
+          void refreshTrackUrl(currentIndex, playIntentRef.current, failedAt);
         }}
       />
 
