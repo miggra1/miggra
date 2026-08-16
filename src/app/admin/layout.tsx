@@ -1,6 +1,7 @@
 import { isAdminAuthenticated } from "@/lib/auth";
 import { AdminLogin } from "./login";
 import { AdminNav } from "./admin-nav";
+import { AdminTopbar } from "./admin-topbar";
 import type { ReactNode } from "react";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
@@ -10,7 +11,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="admin-shell">
       <div className="admin-frame">
         <AdminNav />
-        <main className="studio-main">{children}</main>
+        <div className="studio-workspace">
+          <AdminTopbar />
+          <main className="studio-main">{children}</main>
+        </div>
       </div>
     </div>
   );
