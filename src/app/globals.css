@@ -1800,11 +1800,25 @@ body:has(.admin-shell) [aria-label="返回顶部"] { display: none; }
   border-radius: 12px 12px 0 0;
   background: color-mix(in srgb, var(--card) 82%, transparent);
 }
-.markdown-editor-type-controls > span {
+.markdown-editor-type-heading {
   margin-right: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.markdown-editor-type-heading > span {
   color: var(--subtle);
   font-size: 11px;
   letter-spacing: .04em;
+}
+.markdown-editor-type-heading > small { color: color-mix(in srgb, var(--subtle) 68%, transparent); font-size: 9px; }
+.markdown-editor-font-preview {
+  min-width: 54px;
+  color: var(--fg-secondary);
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+  font-kerning: normal;
 }
 .markdown-editor-type-controls label { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; }
 .markdown-editor-type-controls select {
@@ -1818,13 +1832,14 @@ body:has(.admin-shell) [aria-label="返回顶部"] { display: none; }
   font: inherit;
   cursor: pointer;
 }
+.markdown-editor-type-controls label:first-of-type select { width: 184px; }
 .markdown-editor-type-controls select:hover { border-color: var(--border-strong); }
 .markdown-editor-type-controls select:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
-.markdown-editor-field { border-radius: 0 0 12px 12px; transition: border-color .2s ease, font-size .2s ease; }
+.markdown-editor-field { border-radius: 0 0 12px 12px; font-kerning: normal; font-optical-sizing: auto; transition: border-color .2s ease, font-size .2s ease; }
 
 @media (max-width: 720px) {
   .markdown-editor-type-controls { flex-wrap: wrap; gap: 8px 12px; padding-top: 8px; padding-bottom: 8px; }
-  .markdown-editor-type-controls > span { width: 100%; }
+  .markdown-editor-type-heading { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
